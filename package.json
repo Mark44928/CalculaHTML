@@ -1,0 +1,11 @@
+{
+  "name": "calculahtml",
+  "version": "1.0.0",
+  "description": "Feature-rich modern HTML calculator with multiple themes",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "check": "node --check js/app.js"
+  },
+  "keywords": ["calculator", "html", "css", "javascript", "themes"],
+  "license": "MIT"
+}

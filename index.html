@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CalculaHTML — Modern Calculator</title>
+  <meta name="description" content="Feature-rich modern HTML calculator with multiple themes (Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin, One Dark, Solarized, Monokai, Rose Pine, GitHub Dark, Old Dark, Dark, Light)." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">∑</div>
+        <div>
+          CalculaHTML
+          <small>Modern calculator</small>
+        </div>
+      </div>
+      <div class="theme-select">
+        <select id="themeSelect" aria-label="Theme">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="gruvbox">Gruvbox</option>
+          <option value="everforest">Everforest</option>
+          <option value="tokyonight">Tokyo Night</option>
+          <option value="dracula">Dracula</option>
+          <option value="nord">Nord</option>
+          <option value="catppuccin">Catppuccin Mocha</option>
+          <option value="onedark">One Dark</option>
+          <option value="solarized">Solarized Dark</option>
+          <option value="rosepine">Rose Pine</option>
+          <option value="monokai">Monokai</option>
+          <option value="githubdark">GitHub Dark</option>
+          <option value="olddark">Old Dark</option>
+        </select>
+      </div>
+    </header>
+
+    <main class="calc" role="application" aria-label="Calculator">
+      <div class="display">
+        <div class="expr" id="expr" aria-live="polite"></div>
+        <div class="result" id="result" aria-live="assertive">0</div>
+        <div class="meta">
+          <span class="mem inactive" id="memIndicator">M</span>
+          <span id="angleIndicator">DEG</span>
+        </div>
+      </div>
+
+      <div class="keys">
+        <!-- Memory row -->
+        <button class="btn acc" data-action="mem" data-value="mc" title="Memory Clear">MC</button>
+        <button class="btn acc" data-action="mem" data-value="mr" title="Memory Recall">MR</button>
+        <button class="btn acc" data-action="mem" data-value="mplus" title="Memory Add">M+</button>
+        <button class="btn acc" data-action="mem" data-value="mminus" title="Memory Subtract">M−</button>
+        <button class="btn acc" data-action="mem" data-value="ms" title="Memory Store">MS</button>
+
+        <!-- Scientific row 1 -->
+        <button class="btn acc" data-action="sci" data-value="sin" title="Sine">sin</button>
+        <button class="btn acc" data-action="sci" data-value="cos" title="Cosine">cos</button>
+        <button class="btn acc" data-action="sci" data-value="tan" title="Tangent">tan</button>
+        <button class="btn acc" data-action="sci" data-value="log" title="Log base 10">log</button>
+        <button class="btn acc" data-action="sci" data-value="ln" title="Natural log">ln</button>
+
+        <!-- Scientific row 2 -->
+        <button class="btn acc" data-action="sci" data-value="sqrt" title="Square root">√</button>
+        <button class="btn acc" data-action="sci" data-value="sq" title="Square">x²</button>
+        <button class="btn acc" data-action="sci" data-value="cb" title="Cube">x³</button>
+        <button class="btn op" data-action="op" data-value="^" title="Power">x^y</button>
+        <button class="btn acc" data-action="sci" data-value="inv" title="Reciprocal">1/x</button>
+
+        <!-- Control row -->
+        <button class="btn danger" data-action="clear" title="Clear All (Esc)">C</button>
+        <button class="btn danger" data-action="ce" title="Clear Entry">CE</button>
+        <button class="btn danger" data-action="back" title="Backspace">⌫</button>
+        <button class="btn op" data-action="percent" title="Percent">%</button>
+        <button class="btn op" data-action="op" data-value="/" title="Divide">÷</button>
+
+        <!-- Digits row 1 -->
+        <button class="btn" data-action="digit" data-value="7">7</button>
+        <button class="btn" data-action="digit" data-value="8">8</button>
+        <button class="btn" data-action="digit" data-value="9">9</button>
+        <button class="btn op" data-action="op" data-value="*" title="Multiply">×</button>
+        <button class="btn acc" data-action="sci" data-value="fact" title="Factorial">n!</button>
+
+        <!-- Digits row 2 -->
+        <button class="btn" data-action="digit" data-value="4">4</button>
+        <button class="btn" data-action="digit" data-value="5">5</button>
+        <button class="btn" data-action="digit" data-value="6">6</button>
+        <button class="btn op" data-action="op" data-value="-" title="Subtract">−</button>
+        <button class="btn acc" data-action="const" data-value="pi" title="Pi">π</button>
+
+        <!-- Digits row 3 -->
+        <button class="btn" data-action="digit" data-value="1">1</button>
+        <button class="btn" data-action="digit" data-value="2">2</button>
+        <button class="btn" data-action="digit" data-value="3">3</button>
+        <button class="btn op" data-action="op" data-value="+" title="Add">+</button>
+        <button class="btn acc" data-action="const" data-value="e" title="Euler's number">e</button>
+
+        <!-- Bottom row -->
+        <button class="btn wide" data-action="digit" data-value="0">0</button>
+        <button class="btn" data-action="dot" title="Decimal">.</button>
+        <button class="btn" data-action="sign" title="Toggle sign">±</button>
+        <button class="btn eq" data-action="equals" title="Equals (Enter)">=</button>
+      </div>
+    </main>
+
+    <section class="panels">
+      <div class="panel">
+        <h3>History <button id="clearHistory" title="Clear history">clear</button></h3>
+        <div class="list" id="historyList"><div class="empty">No calculations yet</div></div>
+      </div>
+      <div class="panel">
+        <h3>Memory</h3>
+        <div class="list" id="memoryList"><div class="empty">Memory empty</div></div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      CalculaHTML · open source ·
+      <a href="https://github.com/Mark44928/CalculaHTML" target="_blank" rel="noopener">GitHub</a>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
