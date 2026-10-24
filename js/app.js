@@ -248,7 +248,7 @@
       case "sign": toggleSign(); break;
       case "percent": percent(); break;
       case "sci": applySci(btn.dataset.value); break;
-      case "const": insertConstant(btn.dataset.value); break;
+      case "const": applySci(btn.dataset.value); break;
       case "mem": 
         switch (btn.dataset.value) {
           case "mc": memClear(); break;
@@ -318,6 +318,7 @@
 
   // Init
   angleIndicator.textContent = angleMode.toUpperCase();
+  renderHistory();
   renderMemory();
   updateDisplay();
 })();
