@@ -1,5 +1,11 @@
 # CalculaHTML
 
+![License](https://img.shields.io/github/license/Mark44928/CalculaHTML)
+![GitHub Pages](https://img.shields.io/github/deployments/Mark44928/CalculaHTML/github-pages?label=pages)
+![Last commit](https://img.shields.io/github/last-commit/Mark44928/CalculaHTML)
+![Repo size](https://img.shields.io/github/repo-size/Mark44928/CalculaHTML)
+![Stars](https://img.shields.io/github/stars/Mark44928/CalculaHTML?style=social)
+
 A feature-rich, visually rich modern HTML calculator with multiple themes.
 
 **Live site:** https://mark44928.github.io/CalculaHTML/
