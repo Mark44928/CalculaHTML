@@ -8,7 +8,666 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+/* CalculaHTML — modern HTML calculator stylesheet */
+/* Theme system: set data-theme on <html> to switch palettes. */
+
+:root {
+  --radius: 18px;
+  --radius-sm: 12px;
+  --gap: 10px;
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", "Fira Code", ui-monospace, "Cascadia Code", monospace;
+  --transition: 180ms cubic-bezier(.2,.8,.2,1);
+  --shadow-soft: 0 8px 24px rgba(0,0,0,.18);
+  --shadow-strong: 0 18px 48px rgba(0,0,0,.28);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--fg);
+  transition: background var(--transition), color var(--transition);
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(1200px 600px at 10% 10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 90% 90%, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 60%),
+    radial-gradient(700px 400px at 50% 50%, color-mix(in srgb, var(--accent-3) 8%, transparent), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* ---------- Theme: Dark (default modern) ---------- */
+[data-theme="dark"] {
+  --bg: #0f1115;
+  --bg-elev: #161922;
+  --surface: #1c202a;
+  --surface-2: #242936;
+  --fg: #e6e8ee;
+  --fg-muted: #a8adb8;
+  --fg-dim: #6b7280;
+  --accent: #7c9cff;
+  --accent-2: #a78bfa;
+  --accent-3: #f472b6;
+  --operator: #fbbf24;
+  --equals: #34d399;
+  --danger: #f87171;
+  --success: #34d399;
+  --border: rgba(255,255,255,.08);
+  --btn-bg: #242936;
+  --btn-fg: #e6e8ee;
+  --btn-hover: #2e3444;
+  --btn-active: #3a4154;
+  --display-bg: #0a0c10;
+  --display-fg: #e6e8ee;
+  --shadow-color: rgba(0,0,0,.45);
+}
+
+/* ---------- Theme: Light ---------- */
+[data-theme="light"] {
+  --bg: #f4f6fa;
+  --bg-elev: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #eef1f7;
+  --fg: #1a1d24;
+  --fg-muted: #5a6070;
+  --fg-dim: #9aa0ac;
+  --accent: #3b6cff;
+  --accent-2: #7c3aed;
+  --accent-3: #db2777;
+  --operator: #d97706;
+  --equals: #059669;
+  --danger: #dc2626;
+  --success: #059669;
+  --border: rgba(0,0,0,.08);
+  --btn-bg: #eef1f7;
+  --btn-fg: #1a1d24;
+  --btn-hover: #e2e6ef;
+  --btn-active: #d6dbe6;
+  --display-bg: #ffffff;
+  --display-fg: #1a1d24;
+  --shadow-color: rgba(0,0,0,.12);
+}
+
+/* ---------- Gruvbox Dark ---------- */
+[data-theme="gruvbox"] {
+  --bg: #282828;
+  --bg-elev: #32302f;
+  --surface: #3c3836;
+  --surface-2: #504945;
+  --fg: #ebdbb2;
+  --fg-muted: #d5c4a1;
+  --fg-dim: #928374;
+  --accent: #fabd2f;
+  --accent-2: #fe8019;
+  --accent-3: #fb4934;
+  --operator: #fabd2f;
+  --equals: #b8bb26;
+  --danger: #fb4934;
+  --success: #b8bb26;
+  --border: rgba(235,219,178,.1);
+  --btn-bg: #3c3836;
+  --btn-fg: #ebdbb2;
+  --btn-hover: #504945;
+  --btn-active: #665c54;
+  --display-bg: #1d2021;
+  --display-fg: #ebdbb2;
+  --shadow-color: rgba(0,0,0,.4);
+}
+
+/* ---------- Everforest Dark (medium) ---------- */
+[data-theme="everforest"] {
+  --bg: #232a2e;
+  --bg-elev: #2d353b;
+  --surface: #343f44;
+  --surface-2: #3d484d;
+  --fg: #d3c6aa;
+  --fg-muted: #9da9a0;
+  --fg-dim: #7a8478;
+  --accent: #a7c080;
+  --accent-2: #83c092;
+  --accent-3: #e67e80;
+  --operator: #dbbc7f;
+  --equals: #a7c080;
+  --danger: #e67e80;
+  --success: #a7c080;
+  --border: rgba(211,198,170,.08);
+  --btn-bg: #343f44;
+  --btn-fg: #d3c6aa;
+  --btn-hover: #3d484d;
+  --btn-active: #475258;
+  --display-bg: #1e2326;
+  --display-fg: #d3c6aa;
+  --shadow-color: rgba(0,0,0,.4);
+}
+
+/* ---------- Tokyo Night ---------- */
+[data-theme="tokyonight"] {
+  --bg: #1a1b26;
+  --bg-elev: #16161e;
+  --surface: #24283b;
+  --surface-2: #292e42;
+  --fg: #c0caf5;
+  --fg-muted: #a9b1d6;
+  --fg-dim: #565f89;
+  --accent: #7aa2f7;
+  --accent-2: #bb9af7;
+  --accent-3: #f7768e;
+  --operator: #e0af68;
+  --equals: #9ece6a;
+  --danger: #f7768e;
+  --success: #9ece6a;
+  --border: rgba(192,202,245,.08);
+  --btn-bg: #24283b;
+  --btn-fg: #c0caf5;
+  --btn-hover: #292e42;
+  --btn-active: #333950;
+  --display-bg: #16161e;
+  --display-fg: #c0caf5;
+  --shadow-color: rgba(0,0,0,.5);
+}
+
+/* ---------- Dracula ---------- */
+[data-theme="dracula"] {
+  --bg: #282a36;
+  --bg-elev: #21222c;
+  --surface: #44475a;
+  --surface-2: #6272a4;
+  --fg: #f8f8f2;
+  --fg-muted: #e0e0d8;
+  --fg-dim: #6272a4;
+  --accent: #bd93f9;
+  --accent-2: #ff79c6;
+  --accent-3: #ff5555;
+  --operator: #ffb86c;
+  --equals: #50fa7b;
+  --danger: #ff5555;
+  --success: #50fa7b;
+  --border: rgba(248,248,242,.08);
+  --btn-bg: #44475a;
+  --btn-fg: #f8f8f2;
+  --btn-hover: #6272a4;
+  --btn-active: #6d7aaa;
+  --display-bg: #21222c;
+  --display-fg: #f8f8f2;
+  --shadow-color: rgba(0,0,0,.45);
+}
+
+/* ---------- Nord ---------- */
+[data-theme="nord"] {
+  --bg: #2e3440;
+  --bg-elev: #3b4252;
+  --surface: #434c5e;
+  --surface-2: #4c566a;
+  --fg: #eceff4;
+  --fg-muted: #d8dee9;
+  --fg-dim: #7b88a1;
+  --accent: #88c0d0;
+  --accent-2: #b48ead;
+  --accent-3: #bf616a;
+  --operator: #ebcb8b;
+  --equals: #a3be8c;
+  --danger: #bf616a;
+  --success: #a3be8c;
+  --border: rgba(236,239,244,.08);
+  --btn-bg: #434c5e;
+  --btn-fg: #eceff4;
+  --btn-hover: #4c566a;
+  --btn-active: #55607a;
+  --display-bg: #242933;
+  --display-fg: #eceff4;
+  --shadow-color: rgba(0,0,0,.4);
+}
+
+/* ---------- Catppuccin Mocha ---------- */
+[data-theme="catppuccin"] {
+  --bg: #1e1e2e;
+  --bg-elev: #181825;
+  --surface: #313244;
+  --surface-2: #45475a;
+  --fg: #cdd6f4;
+  --fg-muted: #bac2de;
+  --fg-dim: #6c7086;
+  --accent: #cba6f7;
+  --accent-2: #f38ba8;
+  --accent-3: #fab387;
+  --operator: #f9e2af;
+  --equals: #a6e3a1;
+  --danger: #f38ba8;
+  --success: #a6e3a1;
+  --border: rgba(205,214,244,.08);
+  --btn-bg: #313244;
+  --btn-fg: #cdd6f4;
+  --btn-hover: #45475a;
+  --btn-active: #585b70;
+  --display-bg: #181825;
+  --display-fg: #cdd6f4;
+  --shadow-color: rgba(0,0,0,.45);
+}
+
+/* ---------- One Dark ---------- */
+[data-theme="onedark"] {
+  --bg: #282c34;
+  --bg-elev: #21252b;
+  --surface: #3e4451;
+  --surface-2: #4b5263;
+  --fg: #abb2bf;
+  --fg-muted: #9da5b4;
+  --fg-dim: #5c6370;
+  --accent: #61afef;
+  --accent-2: #c678dd;
+  --accent-3: #e06c75;
+  --operator: #e5c07b;
+  --equals: #98c379;
+  --danger: #e06c75;
+  --success: #98c379;
+  --border: rgba(171,178,191,.08);
+  --btn-bg: #3e4451;
+  --btn-fg: #abb2bf;
+  --btn-hover: #4b5263;
+  --btn-active: #5c6370;
+  --display-bg: #21252b;
+  --display-fg: #abb2bf;
+  --shadow-color: rgba(0,0,0,.45);
+}
+
+/* ---------- Solarized Dark ---------- */
+[data-theme="solarized"] {
+  --bg: #002b36;
+  --bg-elev: #073642;
+  --surface: #0d4756;
+  --surface-2: #1a5a6b;
+  --fg: #839496;
+  --fg-muted: #93a1a1;
+  --fg-dim: #586e75;
+  --accent: #268bd2;
+  --accent-2: #6c71c4;
+  --accent-3: #dc322f;
+  --operator: #b58900;
+  --equals: #859900;
+  --danger: #dc322f;
+  --success: #859900;
+  --border: rgba(131,148,150,.1);
+  --btn-bg: #0d4756;
+  --btn-fg: #93a1a1;
+  --btn-hover: #1a5a6b;
+  --btn-active: #267080;
+  --display-bg: #00212b;
+  --display-fg: #93a1a1;
+  --shadow-color: rgba(0,0,0,.4);
+}
+
+/* ---------- Rose Pine ---------- */
+[data-theme="rosepine"] {
+  --bg: #191724;
+  --bg-elev: #1f1d2e;
+  --surface: #26233a;
+  --surface-2: #393552;
+  --fg: #e0def4;
+  --fg-muted: #c4a7e7;
+  --fg-dim: #6e6a86;
+  --accent: #ebbcba;
+  --accent-2: #c4a7e7;
+  --accent-3: #eb6f92;
+  --operator: #f6c177;
+  --equals: #9ccfd8;
+  --danger: #eb6f92;
+  --success: #9ccfd8;
+  --border: rgba(224,222,244,.08);
+  --btn-bg: #26233a;
+  --btn-fg: #e0def4;
+  --btn-hover: #393552;
+  --btn-active: #4b4666;
+  --display-bg: #1f1d2e;
+  --display-fg: #e0def4;
+  --shadow-color: rgba(0,0,0,.45);
+}
+
+/* ---------- Monokai ---------- */
+[data-theme="monokai"] {
+  --bg: #272822;
+  --bg-elev: #1e1f1c;
+  --surface: #3e3d32;
+  --surface-2: #49483e;
+  --fg: #f8f8f2;
+  --fg-muted: #cfcfc2;
+  --fg-dim: #75715e;
+  --accent: #a6e22e;
+  --accent-2: #f92672;
+  --accent-3: #fd971f;
+  --operator: #e6db74;
+  --equals: #a6e22e;
+  --danger: #f92672;
+  --success: #a6e22e;
+  --border: rgba(248,248,242,.08);
+  --btn-bg: #3e3d32;
+  --btn-fg: #f8f8f2;
+  --btn-hover: #49483e;
+  --btn-active: #5a594f;
+  --display-bg: #1e1f1c;
+  --display-fg: #f8f8f2;
+  --shadow-color: rgba(0,0,0,.45);
+}
+
+/* ---------- GitHub Dark ---------- */
+[data-theme="githubdark"] {
+  --bg: #0d1117;
+  --bg-elev: #161b22;
+  --surface: #21262d;
+  --surface-2: #30363d;
+  --fg: #c9d1d9;
+  --fg-muted: #b1bac4;
+  --fg-dim: #484f58;
+  --accent: #58a6ff;
+  --accent-2: #bc8cff;
+  --accent-3: #f78166;
+  --operator: #d29922;
+  --equals: #3fb950;
+  --danger: #f85149;
+  --success: #3fb950;
+  --border: rgba(201,209,217,.08);
+  --btn-bg: #21262d;
+  --btn-fg: #c9d1d9;
+  --btn-hover: #30363d;
+  --btn-active: #3d444d;
+  --display-bg: #010409;
+  --display-fg: #c9d1d9;
+  --shadow-color: rgba(0,0,0,.5);
+}
+
+/* ---------- Old Dark (vintage amber/phosphor) ---------- */
+[data-theme="olddark"] {
+  --bg: #1a1410;
+  --bg-elev: #221a14;
+  --surface: #2b221a;
+  --surface-2: #3a2e22;
+  --fg: #e8d5a8;
+  --fg-muted: #c9b380;
+  --fg-dim: #8a7350;
+  --accent: #ffb347;
+  --accent-2: #ff8c42;
+  --accent-3: #e05a3a;
+  --operator: #ffd27a;
+  --equals: #9bc76e;
+  --danger: #e05a3a;
+  --success: #9bc76e;
+  --border: rgba(232,213,168,.08);
+  --btn-bg: #2b221a;
+  --btn-fg: #e8d5a8;
+  --btn-hover: #3a2e22;
+  --btn-active: #4a3a2a;
+  --display-bg: #120e0a;
+  --display-fg: #ffb347;
+  --shadow-color: rgba(0,0,0,.5);
+}
+
+/* ---------- Layout ---------- */
+.app {
+  width: min(420px, 94vw);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: .3px;
+}
+.brand .logo {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 6px 16px var(--shadow-color);
+}
+.brand small { display:block; font-weight:400; font-size:.72rem; color:var(--fg-muted); letter-spacing:.2px; }
+
+.theme-select {
+  display: flex; align-items: center; gap: 8px;
+}
+.theme-select select {
+  appearance: none;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 8px 34px 8px 12px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color var(--transition), background var(--transition);
+}
+.theme-select select:hover { border-color: var(--accent); }
+.theme-select select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+
+/* ---------- Calculator card ---------- */
+.calc {
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 20px 60px var(--shadow-color), 0 2px 6px var(--shadow-color);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+/* ---------- Display ---------- */
+.display {
+  background: var(--display-bg);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px 10px;
+  margin-bottom: 12px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+.display .expr {
+  font-family: var(--mono);
+  font-size: .95rem;
+  color: var(--fg-muted);
+  text-align: right;
+  min-height: 1.2em;
+  word-break: break-all;
+  opacity: .85;
+}
+.display .result {
+  font-family: var(--mono);
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: var(--display-fg);
+  text-align: right;
+  line-height: 1.1;
+  word-break: break-all;
+  transition: color var(--transition);
+}
+.display .result.shake { animation: shake .35s ease; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.display .meta {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .7rem; color: var(--fg-dim);
+  font-family: var(--mono);
+}
+.display .meta .mem { color: var(--accent); font-weight: 600; }
+.display .meta .mem.inactive { color: var(--fg-dim); font-weight: 400; }
+
+/* ---------- Buttons grid ---------- */
+.keys {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--gap);
+}
+@media (max-width: 420px) {
+  .keys { grid-template-columns: repeat(4, 1fr); }
+}
+
+.btn {
+  border: none;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 500;
+  padding: 0;
+  height: 58px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition), color var(--transition);
+  box-shadow: 0 2px 4px var(--shadow-color);
+  position: relative;
+  overflow: hidden;
+}
+.btn:hover { background: var(--btn-hover); transform: translateY(-1px); box-shadow: 0 4px 10px var(--shadow-color); }
+.btn:active { transform: translateY(1px) scale(.97); background: var(--btn-active); box-shadow: 0 1px 2px var(--shadow-color); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+
+.btn .label { display:block; }
+.btn .sub { display:block; font-size: .62rem; color: var(--fg-dim); margin-top: 2px; }
+
+/* variants */
+.btn.op { background: color-mix(in srgb, var(--operator) 14%, var(--btn-bg)); color: var(--operator); font-weight: 600; }
+.btn.op:hover { background: color-mix(in srgb, var(--operator) 22%, var(--btn-hover)); }
+.btn.eq { background: linear-gradient(135deg, var(--equals), color-mix(in srgb, var(--equals) 70%, var(--accent))); color: #fff; font-weight: 700; box-shadow: 0 6px 16px color-mix(in srgb, var(--equals) 35%, transparent); }
+.btn.eq:hover { filter: brightness(1.08); }
+.btn.acc { background: color-mix(in srgb, var(--accent) 16%, var(--btn-bg)); color: var(--accent); }
+.btn.acc:hover { background: color-mix(in srgb, var(--accent) 26%, var(--btn-hover)); }
+.btn.danger { color: var(--danger); }
+.btn.wide { grid-column: span 2; }
+.btn.tall { grid-row: span 2; height: 100%; }
+
+/* ripple */
+.btn::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(circle, rgba(255,255,255,.35) 10%, transparent 10.01%);
+  background-size: 1000% 1000%;
+  background-position: 50% 50%;
+  opacity: 0;
+  transition: background-size .5s, opacity .5s;
+}
+.btn:active::after {
+  background-size: 0% 0%;
+  opacity: .4;
+  transition: 0s;
+}
+
+/* ---------- Panels: history & memory ---------- */
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+@media (max-width: 420px) { .panels { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  max-height: 160px;
+  overflow: auto;
+  box-shadow: 0 6px 18px var(--shadow-color);
+  transition: background var(--transition);
+}
+.panel h3 {
+  margin: 0 0 6px;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--fg-dim);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.panel h3 button {
+  background: none; border: none; color: var(--fg-dim); cursor: pointer;
+  font-size: .72rem; padding: 2px 6px; border-radius: 6px;
+}
+.panel h3 button:hover { color: var(--fg); background: var(--btn-hover); }
+.panel .list { font-family: var(--mono); font-size: .8rem; line-height: 1.5; }
+.panel .list .row { display:flex; justify-content:space-between; gap:8px; padding:2px 0; border-bottom: 1px dashed var(--border); }
+.panel .list .row:last-child { border-bottom: none; }
+.panel .list .row .e { color: var(--fg-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.panel .list .row .r { color: var(--fg); font-weight:600; }
+.panel .empty { color: var(--fg-dim); font-style: italic; font-size:.8rem; padding: 4px 0; }
+
+/* ---------- Footer ---------- */
+.footer {
+  text-align: center;
+  font-size: .72rem;
+  color: var(--fg-dim);
+  padding: 4px;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fg-dim); }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface); color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 10px 16px; border-radius: 10px;
+  font-size: .85rem; box-shadow: 0 10px 30px var(--shadow-color);
+  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+  z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Responsive tweaks ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+</style>
 </head>
 <body>
   <div class="app">
@@ -127,6 +786,332 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="js/app.js"></script>
+  <script>
+/* CalculaHTML — calculator engine */
+(function () {
+  "use strict";
+
+  const displayExpr = document.getElementById("expr");
+  const displayResult = document.getElementById("result");
+  const displayMem = document.getElementById("memIndicator");
+  const angleIndicator = document.getElementById("angleIndicator");
+  const historyList = document.getElementById("historyList");
+  const memoryList = document.getElementById("memoryList");
+  const themeSelect = document.getElementById("themeSelect");
+  const toast = document.getElementById("toast");
+
+  let current = "0";
+  let previous = "";
+  let operator = null;
+  let justEvaluated = false;
+  let memory = 0;
+  let hasMemory = false;
+  const history = [];
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 1400);
+  }
+
+  function formatNumber(n) {
+    if (typeof n === "string") return n;
+    if (!isFinite(n)) return String(n);
+    // avoid scientific for reasonable ranges
+    let s = String(n);
+    if (s.includes("e")) return s;
+    if (s.length > 14) {
+      const fixed = n.toPrecision(12);
+      return parseFloat(fixed).toString();
+    }
+    return s;
+  }
+
+  function updateDisplay() {
+    displayResult.textContent = current;
+    if (operator && !justEvaluated) {
+      displayExpr.textContent = (previous || "") + " " + symbolFor(operator);
+    } else if (justEvaluated && previous) {
+      // show the full evaluated expression if available
+      displayExpr.textContent = previous.includes(" ") ? previous : "";
+    } else {
+      displayExpr.textContent = "";
+    }
+    if (hasMemory) {
+      displayMem.textContent = "M";
+      displayMem.classList.remove("inactive");
+    } else {
+      displayMem.textContent = "M";
+      displayMem.classList.add("inactive");
+    }
+    angleIndicator.textContent = angleMode.toUpperCase();
+  }
+
+  function symbolFor(op) {
+    return { "+": "+", "-": "−", "*": "×", "/": "÷", "^": "^" }[op] || op;
+  }
+
+  function pushHistory(expr, result) {
+    history.unshift({ expr, result });
+    if (history.length > 40) history.pop();
+    renderHistory();
+  }
+  function renderHistory() {
+    if (history.length === 0) {
+      historyList.innerHTML = '<div class="empty">No calculations yet</div>';
+      return;
+    }
+    historyList.innerHTML = history.map(h =>
+      `<div class="row"><span class="e">${escapeHtml(h.expr)}</span><span class="r">${escapeHtml(h.result)}</span></div>`
+    ).join("");
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function inputDigit(d) {
+    if (justEvaluated) { current = d === "." ? "0." : d; justEvaluated = false; return; }
+    if (d === ".") {
+      if (current.includes(".")) return;
+      current += ".";
+    } else {
+      if (current === "0") current = d; else current += d;
+    }
+    if (current.length > 18) current = current.slice(0, 18);
+  }
+
+  function inputOperator(op) {
+    if (operator && !justEvaluated) {
+      // chain evaluate
+      evaluate(true);
+    }
+    previous = current;
+    operator = op;
+    justEvaluated = false;
+    current = "0";
+  }
+
+  function evaluate(silent) {
+    if (operator === null) { justEvaluated = true; return; }
+    const a = parseFloat(previous);
+    const b = parseFloat(current);
+    let res;
+    switch (operator) {
+      case "+": res = a + b; break;
+      case "-": res = a - b; break;
+      case "*": res = a * b; break;
+      case "/":
+        if (b === 0) { shake(); current = "Error"; operator = null; previous = ""; justEvaluated = true; updateDisplay(); return; }
+        res = a / b; break;
+      case "^": res = Math.pow(a, b); break;
+      case "%": res = a % b; break;
+      default: res = b;
+    }
+    const exprStr = previous + " " + symbolFor(operator) + " " + current;
+    const resStr = formatNumber(res);
+    if (!silent) pushHistory(exprStr, resStr);
+    current = resStr;
+    previous = exprStr;
+    operator = null;
+    justEvaluated = true;
+  }
+
+  function shake() {
+    displayResult.classList.remove("shake");
+    void displayResult.offsetWidth;
+    displayResult.classList.add("shake");
+  }
+
+  function clearAll() {
+    current = "0"; previous = ""; operator = null; justEvaluated = false;
+  }
+  function clearEntry() { current = "0"; }
+  function backspace() {
+    if (justEvaluated) return;
+    if (current.length <= 1) current = "0";
+    else current = current.slice(0, -1);
+    if (current === "-" || current === "") current = "0";
+  }
+  function toggleSign() {
+    if (current === "0") return;
+    if (current.startsWith("-")) current = current.slice(1);
+    else current = "-" + current;
+  }
+  function percent() {
+    const v = parseFloat(current) / 100;
+    current = formatNumber(v);
+    justEvaluated = false;
+  }
+
+  // Scientific functions applied to current
+  const sci = {
+    sin: (x) => Math.sin(toRad(x)),
+    cos: (x) => Math.cos(toRad(x)),
+    tan: (x) => Math.tan(toRad(x)),
+    asin: (x) => toDeg(Math.asin(x)),
+    acos: (x) => toDeg(Math.acos(x)),
+    atan: (x) => toDeg(Math.atan(x)),
+    log: (x) => Math.log10(x),
+    ln: (x) => Math.log(x),
+    sqrt: (x) => Math.sqrt(x),
+    cbrt: (x) => Math.cbrt(x),
+    sq: (x) => x * x,
+    cb: (x) => x * x * x,
+    inv: (x) => 1 / x,
+    fact: (x) => factorial(Math.round(x)),
+    abs: (x) => Math.abs(x),
+    exp: (x) => Math.exp(x),
+  };
+  let angleMode = "deg"; // deg | rad
+  function toRad(x) { return angleMode === "deg" ? (x * Math.PI / 180) : x; }
+  function toDeg(x) { return angleMode === "deg" ? (x * 180 / Math.PI) : x; }
+  function factorial(n) {
+    if (n < 0) return NaN;
+    if (n > 170) return Infinity;
+    let r = 1; for (let i = 2; i <= n; i++) r *= i; return r;
+  }
+
+  function applySci(name) {
+    const x = parseFloat(current);
+    let res;
+    if (name === "pi") { current = formatNumber(Math.PI); justEvaluated = false; updateDisplay(); return; }
+    if (name === "e") { current = formatNumber(Math.E); justEvaluated = false; updateDisplay(); return; }
+    if (name === "pow10") { current = formatNumber(Math.pow(10, x)); justEvaluated = false; updateDisplay(); return; }
+    if (sci[name]) {
+      res = sci[name](x);
+      const exprStr = name + "(" + current + ")";
+      pushHistory(exprStr, formatNumber(res));
+      current = formatNumber(res);
+      justEvaluated = true;
+    }
+  }
+
+  function insertConstant(name) {
+    if (name === "pi") current = (justEvaluated ? "" : current === "0" ? "" : current) + Math.PI.toString().slice(0,12);
+    if (name === "e") current = (justEvaluated ? "" : current === "0" ? "" : current) + Math.E.toString().slice(0,12);
+    justEvaluated = false;
+    if (current === "" ) current = "0";
+  }
+
+  // Memory
+  function memClear() { memory = 0; hasMemory = false; renderMemory(); updateDisplay(); }
+  function memRecall() { current = formatNumber(memory); justEvaluated = false; updateDisplay(); }
+  function memAdd() { memory += parseFloat(current); hasMemory = true; renderMemory(); showToast("M+"); }
+  function memSub() { memory -= parseFloat(current); hasMemory = (memory !== 0); renderMemory(); showToast("M−"); }
+  function memStore() { memory = parseFloat(current); hasMemory = true; renderMemory(); showToast("MS"); }
+  function renderMemory() {
+    if (!hasMemory) {
+      memoryList.innerHTML = '<div class="empty">Memory empty</div>';
+      return;
+    }
+    memoryList.innerHTML = `<div class="row"><span class="e">Memory</span><span class="r">${formatNumber(memory)}</span></div>`;
+  }
+
+  // Theme handling
+  function applyTheme(name) {
+    document.documentElement.setAttribute("data-theme", name);
+    try { localStorage.setItem("calc-theme", name); } catch (e) {}
+    themeSelect.value = name;
+  }
+  const savedTheme = (() => { try { return localStorage.getItem("calc-theme"); } catch(e){return null;} })();
+  if (savedTheme) applyTheme(savedTheme); else applyTheme("dark");
+
+  themeSelect.addEventListener("change", (e) => applyTheme(e.target.value));
+
+  // Button handling
+  document.querySelectorAll(".btn").forEach(btn => {
+    btn.addEventListener("click", () => handleAction(btn.dataset.action, btn));
+  });
+
+  function handleAction(action, btn) {
+    if (!action) return;
+    switch (action) {
+      case "digit": inputDigit(btn.dataset.value); break;
+      case "dot": inputDigit("."); break;
+      case "op": inputOperator(btn.dataset.value); break;
+      case "equals": evaluate(false); break;
+      case "clear": clearAll(); break;
+      case "ce": clearEntry(); break;
+      case "back": backspace(); break;
+      case "sign": toggleSign(); break;
+      case "percent": percent(); break;
+      case "sci": applySci(btn.dataset.value); break;
+      case "const": applySci(btn.dataset.value); break;
+      case "mem": 
+        switch (btn.dataset.value) {
+          case "mc": memClear(); break;
+          case "mr": memRecall(); break;
+          case "mplus": memAdd(); break;
+          case "mminus": memSub(); break;
+          case "ms": memStore(); break;
+        }
+        break;
+      case "angle": 
+        angleMode = angleMode === "deg" ? "rad" : "deg";
+        btn.textContent = angleMode.toUpperCase();
+        showToast("Angle: " + angleMode.toUpperCase());
+        break;
+      case "copy":
+        copyResult(); break;
+      case "history-clear":
+        history.length = 0; renderHistory(); break;
+      default: break;
+    }
+    updateDisplay();
+  }
+
+  function copyResult() {
+    const txt = current;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(txt).then(() => showToast("Copied")).catch(() => showToast("Copy failed"));
+    } else {
+      showToast("Clipboard unavailable");
+    }
+  }
+
+  // Keyboard support
+  const keyMap = {
+    "0":"0","1":"1","2":"2","3":"3","4":"4","5":"5","6":"6","7":"7","8":"8","9":"9",
+    ".":"dot", ",":"dot",
+    "+":"+", "-":"-", "*":"*", "x":"*", "X":"*", "/":"÷", "^":"^",
+    "Enter":"=", "=":"=",
+    "Backspace":"back", "Delete":"ce", "Escape":"clear",
+    "%":"percent",
+  };
+  window.addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey) return;
+    const k = e.key;
+    if (keyMap[k] !== undefined) {
+      e.preventDefault();
+      const v = keyMap[k];
+      if (v === "dot") { inputDigit("."); updateDisplay(); return; }
+      if (["0","1","2","3","4","5","6","7","8","9"].includes(v)) { inputDigit(v); updateDisplay(); return; }
+      if (v === "=") { evaluate(false); updateDisplay(); return; }
+      if (v === "back") { backspace(); updateDisplay(); return; }
+      if (v === "ce") { clearEntry(); updateDisplay(); return; }
+      if (v === "clear") { clearAll(); updateDisplay(); return; }
+      if (v === "percent") { percent(); updateDisplay(); return; }
+      // operators
+      const opMap = {"+":"+","-":"-","*":"*","÷":"/","^":"^"};
+      if (opMap[v]) { inputOperator(opMap[v]); updateDisplay(); return; }
+    }
+  });
+
+  angleIndicator.style.cursor = "pointer";
+  angleIndicator.addEventListener("click", () => {
+    angleMode = angleMode === "deg" ? "rad" : "deg";
+    angleIndicator.textContent = angleMode.toUpperCase();
+    showToast("Angle: " + angleMode.toUpperCase());
+  });
+
+  // Init
+  angleIndicator.textContent = angleMode.toUpperCase();
+  renderHistory();
+  renderMemory();
+  updateDisplay();
+})();
+
+</script>
 </body>
 </html>

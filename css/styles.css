@@ -32,6 +32,11 @@ body {
   color: var(--fg);
   transition: background var(--transition), color var(--transition);
   overflow-x: hidden;
+  background-image:
+    radial-gradient(1200px 600px at 10% 10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 90% 90%, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 60%),
+    radial-gradient(700px 400px at 50% 50%, color-mix(in srgb, var(--accent-3) 8%, transparent), transparent 70%);
+  background-attachment: fixed;
 }
 
 /* ---------- Theme: Dark (default modern) ---------- */
@@ -456,12 +461,13 @@ body {
 
 /* ---------- Calculator card ---------- */
 .calc {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: 0 20px 60px var(--shadow-color), 0 2px 6px var(--shadow-color);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   transition: background var(--transition), border-color var(--transition);
 }
 

@@ -2,6 +2,8 @@
 
 A feature-rich, visually rich modern HTML calculator with multiple themes.
 
+**Live site:** https://mark44928.github.io/CalculaHTML/
+
 ![Calculator preview](assets/preview.svg)
 
 ## Features
