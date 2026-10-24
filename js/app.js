@@ -224,11 +224,18 @@
     document.documentElement.setAttribute("data-theme", name);
     try { localStorage.setItem("calc-theme", name); } catch (e) {}
     themeSelect.value = name;
+    document.querySelectorAll(".theme-swatches button").forEach(b => {
+      b.classList.toggle("active", b.dataset.theme === name);
+    });
   }
   const savedTheme = (() => { try { return localStorage.getItem("calc-theme"); } catch(e){return null;} })();
   if (savedTheme) applyTheme(savedTheme); else applyTheme("dark");
 
   themeSelect.addEventListener("change", (e) => applyTheme(e.target.value));
+
+  document.querySelectorAll(".theme-swatches button").forEach(btn => {
+    btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
+  });
 
   // Button handling
   document.querySelectorAll(".btn").forEach(btn => {

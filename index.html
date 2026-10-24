@@ -414,7 +414,29 @@ body {
   --shadow-color: rgba(0,0,0,.5);
 }
 
-/* ---------- Layout ---------- */
+/* ---------- Theme swatches ---------- */
+.theme-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  padding: 4px 0;
+}
+.theme-swatches button {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 6px var(--shadow-color);
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+.theme-swatches button:hover { transform: scale(1.15); }
+.theme-swatches button.active {
+  border-color: var(--fg);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg);
+  transform: scale(1.1);
+}
 .app {
   width: min(420px, 94vw);
   display: flex;
@@ -703,7 +725,22 @@ body {
       </div>
     </header>
 
-    <main class="calc" role="application" aria-label="Calculator">
+    <div class="theme-swatches" id="themeSwatches" aria-label="Theme picker">
+      <button data-theme="dark" title="Dark" style="background:#7c9cff"></button>
+      <button data-theme="light" title="Light" style="background:#3b6cff"></button>
+      <button data-theme="gruvbox" title="Gruvbox" style="background:#fabd2f"></button>
+      <button data-theme="everforest" title="Everforest" style="background:#a7c080"></button>
+      <button data-theme="tokyonight" title="Tokyo Night" style="background:#7aa2f7"></button>
+      <button data-theme="dracula" title="Dracula" style="background:#bd93f9"></button>
+      <button data-theme="nord" title="Nord" style="background:#88c0d0"></button>
+      <button data-theme="catppuccin" title="Catppuccin" style="background:#cba6f7"></button>
+      <button data-theme="onedark" title="One Dark" style="background:#61afef"></button>
+      <button data-theme="solarized" title="Solarized" style="background:#268bd2"></button>
+      <button data-theme="rosepine" title="Rose Pine" style="background:#ebbcba"></button>
+      <button data-theme="monokai" title="Monokai" style="background:#a6e22e"></button>
+      <button data-theme="githubdark" title="GitHub Dark" style="background:#58a6ff"></button>
+      <button data-theme="olddark" title="Old Dark" style="background:#ffb347"></button>
+    </div>
       <div class="display">
         <div class="expr" id="expr" aria-live="polite"></div>
         <div class="result" id="result" aria-live="assertive">0</div>
@@ -1017,11 +1054,18 @@ body {
     document.documentElement.setAttribute("data-theme", name);
     try { localStorage.setItem("calc-theme", name); } catch (e) {}
     themeSelect.value = name;
+    document.querySelectorAll(".theme-swatches button").forEach(b => {
+      b.classList.toggle("active", b.dataset.theme === name);
+    });
   }
   const savedTheme = (() => { try { return localStorage.getItem("calc-theme"); } catch(e){return null;} })();
   if (savedTheme) applyTheme(savedTheme); else applyTheme("dark");
 
   themeSelect.addEventListener("change", (e) => applyTheme(e.target.value));
+
+  document.querySelectorAll(".theme-swatches button").forEach(btn => {
+    btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
+  });
 
   // Button handling
   document.querySelectorAll(".btn").forEach(btn => {
