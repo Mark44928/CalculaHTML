@@ -21,6 +21,7 @@ A feature-rich, visually rich modern HTML calculator with multiple themes.
 - 14 themes: Dark, Light, Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin Mocha, One Dark, Solarized Dark, Rose Pine, Monokai, GitHub Dark, Old Dark
 - Keyboard support, copy result, angle mode (DEG/RAD)
 - Responsive layout, accessible, reduced-motion friendly
+- Progressive Web App: installable, offline-capable (manifest + service worker)
 - Zero dependencies — pure HTML/CSS/JS
 
 ## Usage

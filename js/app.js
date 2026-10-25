@@ -227,6 +227,8 @@
     document.querySelectorAll(".theme-swatches button").forEach(b => {
       b.classList.toggle("active", b.dataset.theme === name);
     });
+    const tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) tc.setAttribute("content", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7c9cff");
   }
   const savedTheme = (() => { try { return localStorage.getItem("calc-theme"); } catch(e){return null;} })();
   if (savedTheme) applyTheme(savedTheme); else applyTheme("dark");
