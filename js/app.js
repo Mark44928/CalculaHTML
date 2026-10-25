@@ -220,18 +220,22 @@
   }
 
   // Theme handling
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  function systemTheme() { return prefersDark ? "dark" : "light"; }
+
   function applyTheme(name) {
-    document.documentElement.setAttribute("data-theme", name);
+    const effective = name === "system" ? systemTheme() : name;
+    document.documentElement.setAttribute("data-theme", effective);
     try { localStorage.setItem("calc-theme", name); } catch (e) {}
     themeSelect.value = name;
     document.querySelectorAll(".theme-swatches button").forEach(b => {
-      b.classList.toggle("active", b.dataset.theme === name);
+      b.classList.toggle("active", b.dataset.theme === effective);
     });
     const tc = document.querySelector('meta[name="theme-color"]');
     if (tc) tc.setAttribute("content", getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7c9cff");
   }
   const savedTheme = (() => { try { return localStorage.getItem("calc-theme"); } catch(e){return null;} })();
-  if (savedTheme) applyTheme(savedTheme); else applyTheme("dark");
+  applyTheme(savedTheme || "system");
 
   themeSelect.addEventListener("change", (e) => applyTheme(e.target.value));
 
