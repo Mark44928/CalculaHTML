@@ -491,6 +491,25 @@ body {
 .theme-select select:hover { border-color: var(--accent); }
 .theme-select select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 
+.mode-btn {
+  background: color-mix(in srgb, var(--accent) 14%, var(--btn-bg));
+  color: var(--accent);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.mode-btn:hover {
+  background: color-mix(in srgb, var(--accent) 24%, var(--btn-hover));
+  color: var(--accent-2);
+}
+.mode-btn.basic { color: var(--operator); background: color-mix(in srgb, var(--operator) 14%, var(--btn-bg)); }
+.mode-btn.basic:hover { background: color-mix(in srgb, var(--operator) 24%, var(--btn-hover)); }
+
 /* ---------- Calculator card ---------- */
 .calc {
   background: color-mix(in srgb, var(--surface) 75%, transparent);

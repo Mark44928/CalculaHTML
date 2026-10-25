@@ -244,6 +244,29 @@
     btn.addEventListener("click", () => handleAction(btn.dataset.action, btn));
   });
 
+  // Mark scientific/advanced buttons (hidden in Basic mode)
+  document.querySelectorAll('.btn[data-action="sci"], .btn[data-action="const"]').forEach(b => b.classList.add("sci-btn"));
+  const powerBtn = document.querySelector('.btn[data-action="op"][data-value="^"]');
+  if (powerBtn) powerBtn.classList.add("sci-btn");
+
+  let calcMode = "scientific"; // "scientific" | "basic"
+  const modeToggle = document.getElementById("modeToggle");
+  const sciButtons = document.querySelectorAll(".sci-btn");
+  function setMode(mode) {
+    calcMode = mode;
+    document.documentElement.setAttribute("data-mode", mode);
+    modeToggle.textContent = mode === "scientific" ? "Scientific" : "Basic";
+    modeToggle.classList.toggle("basic", mode === "basic");
+    sciButtons.forEach(b => {
+      b.style.display = mode === "basic" ? "none" : "";
+    });
+  }
+  modeToggle.addEventListener("click", () => setMode(calcMode === "scientific" ? "basic" : "scientific"));
+  try {
+    const savedMode = localStorage.getItem("calc-mode");
+    setMode(savedMode === "basic" ? "basic" : "scientific");
+  } catch (e) { setMode("scientific"); }
+
   function handleAction(action, btn) {
     if (!action) return;
     switch (action) {
