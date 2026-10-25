@@ -592,12 +592,17 @@ body {
 
 /* ---------- Buttons grid ---------- */
 .keys {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+.key-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: var(--gap);
 }
 @media (max-width: 420px) {
-  .keys { grid-template-columns: repeat(4, 1fr); }
+  .key-row { grid-template-columns: repeat(4, 1fr); }
 }
 
 .btn {
@@ -784,61 +789,77 @@ body {
         </div>
       </div>
 
-      <div class="keys">
+            <div class="keys">
         <!-- Memory row -->
-        <button class="btn acc" data-action="mem" data-value="mc" title="Memory Clear">MC</button>
-        <button class="btn acc" data-action="mem" data-value="mr" title="Memory Recall">MR</button>
-        <button class="btn acc" data-action="mem" data-value="mplus" title="Memory Add">M+</button>
-        <button class="btn acc" data-action="mem" data-value="mminus" title="Memory Subtract">M−</button>
-        <button class="btn acc" data-action="mem" data-value="ms" title="Memory Store">MS</button>
+        <div class="key-row sci-row">
+          <button class="btn acc" data-action="mem" data-value="mc" title="Memory Clear">MC</button>
+          <button class="btn acc" data-action="mem" data-value="mr" title="Memory Recall">MR</button>
+          <button class="btn acc" data-action="mem" data-value="mplus" title="Memory Add">M+</button>
+          <button class="btn acc" data-action="mem" data-value="mminus" title="Memory Subtract">M−</button>
+          <button class="btn acc" data-action="mem" data-value="ms" title="Memory Store">MS</button>
+        </div>
 
         <!-- Scientific row 1 -->
-        <button class="btn acc" data-action="sci" data-value="sin" title="Sine">sin</button>
-        <button class="btn acc" data-action="sci" data-value="cos" title="Cosine">cos</button>
-        <button class="btn acc" data-action="sci" data-value="tan" title="Tangent">tan</button>
-        <button class="btn acc" data-action="sci" data-value="log" title="Log base 10">log</button>
-        <button class="btn acc" data-action="sci" data-value="ln" title="Natural log">ln</button>
+        <div class="key-row sci-row">
+          <button class="btn acc" data-action="sci" data-value="sin" title="Sine">sin</button>
+          <button class="btn acc" data-action="sci" data-value="cos" title="Cosine">cos</button>
+          <button class="btn acc" data-action="sci" data-value="tan" title="Tangent">tan</button>
+          <button class="btn acc" data-action="sci" data-value="log" title="Log base 10">log</button>
+          <button class="btn acc" data-action="sci" data-value="ln" title="Natural log">ln</button>
+        </div>
 
         <!-- Scientific row 2 -->
-        <button class="btn acc" data-action="sci" data-value="sqrt" title="Square root">√</button>
-        <button class="btn acc" data-action="sci" data-value="sq" title="Square">x²</button>
-        <button class="btn acc" data-action="sci" data-value="cb" title="Cube">x³</button>
-        <button class="btn op" data-action="op" data-value="^" title="Power">x^y</button>
-        <button class="btn acc" data-action="sci" data-value="inv" title="Reciprocal">1/x</button>
+        <div class="key-row sci-row">
+          <button class="btn acc" data-action="sci" data-value="sqrt" title="Square root">√</button>
+          <button class="btn acc" data-action="sci" data-value="sq" title="Square">x²</button>
+          <button class="btn acc" data-action="sci" data-value="cb" title="Cube">x³</button>
+          <button class="btn acc" data-action="sci" data-value="fact" title="Factorial">n!</button>
+          <button class="btn acc" data-action="sci" data-value="inv" title="Reciprocal">1/x</button>
+        </div>
 
         <!-- Control row -->
-        <button class="btn danger" data-action="clear" title="Clear All (Esc)">C</button>
-        <button class="btn danger" data-action="ce" title="Clear Entry">CE</button>
-        <button class="btn danger" data-action="back" title="Backspace">⌫</button>
-        <button class="btn op" data-action="percent" title="Percent">%</button>
-        <button class="btn op" data-action="op" data-value="/" title="Divide">÷</button>
+        <div class="key-row">
+          <button class="btn danger" data-action="clear" title="Clear All (Esc)">C</button>
+          <button class="btn danger" data-action="ce" title="Clear Entry">CE</button>
+          <button class="btn danger" data-action="back" title="Backspace">⌫</button>
+          <button class="btn op" data-action="percent" title="Percent">%</button>
+          <button class="btn op" data-action="op" data-value="/" title="Divide">÷</button>
+        </div>
 
         <!-- Digits row 1 -->
-        <button class="btn" data-action="digit" data-value="7">7</button>
-        <button class="btn" data-action="digit" data-value="8">8</button>
-        <button class="btn" data-action="digit" data-value="9">9</button>
-        <button class="btn op" data-action="op" data-value="*" title="Multiply">×</button>
-        <button class="btn acc" data-action="sci" data-value="fact" title="Factorial">n!</button>
+        <div class="key-row">
+          <button class="btn" data-action="digit" data-value="7">7</button>
+          <button class="btn" data-action="digit" data-value="8">8</button>
+          <button class="btn" data-action="digit" data-value="9">9</button>
+          <button class="btn op" data-action="op" data-value="*" title="Multiply">×</button>
+          <button class="btn op" data-action="op" data-value="^" title="Power">x^y</button>
+        </div>
 
         <!-- Digits row 2 -->
-        <button class="btn" data-action="digit" data-value="4">4</button>
-        <button class="btn" data-action="digit" data-value="5">5</button>
-        <button class="btn" data-action="digit" data-value="6">6</button>
-        <button class="btn op" data-action="op" data-value="-" title="Subtract">−</button>
-        <button class="btn acc" data-action="const" data-value="pi" title="Pi">π</button>
+        <div class="key-row">
+          <button class="btn" data-action="digit" data-value="4">4</button>
+          <button class="btn" data-action="digit" data-value="5">5</button>
+          <button class="btn" data-action="digit" data-value="6">6</button>
+          <button class="btn op" data-action="op" data-value="-" title="Subtract">−</button>
+          <button class="btn acc" data-action="const" data-value="pi" title="Pi">π</button>
+        </div>
 
         <!-- Digits row 3 -->
-        <button class="btn" data-action="digit" data-value="1">1</button>
-        <button class="btn" data-action="digit" data-value="2">2</button>
-        <button class="btn" data-action="digit" data-value="3">3</button>
-        <button class="btn op" data-action="op" data-value="+" title="Add">+</button>
-        <button class="btn acc" data-action="const" data-value="e" title="Euler's number">e</button>
+        <div class="key-row">
+          <button class="btn" data-action="digit" data-value="1">1</button>
+          <button class="btn" data-action="digit" data-value="2">2</button>
+          <button class="btn" data-action="digit" data-value="3">3</button>
+          <button class="btn op" data-action="op" data-value="+" title="Add">+</button>
+          <button class="btn acc" data-action="const" data-value="e" title="Euler's number">e</button>
+        </div>
 
         <!-- Bottom row -->
-        <button class="btn wide" data-action="digit" data-value="0">0</button>
-        <button class="btn" data-action="dot" title="Decimal">.</button>
-        <button class="btn" data-action="sign" title="Toggle sign">±</button>
-        <button class="btn eq" data-action="equals" title="Equals (Enter)">=</button>
+        <div class="key-row">
+          <button class="btn wide" data-action="digit" data-value="0">0</button>
+          <button class="btn" data-action="dot" title="Decimal">.</button>
+          <button class="btn" data-action="sign" title="Toggle sign">±</button>
+          <button class="btn eq" data-action="equals" title="Equals (Enter)">=</button>
+        </div>
       </div>
     </main>
 
@@ -1108,21 +1129,18 @@ body {
     btn.addEventListener("click", () => handleAction(btn.dataset.action, btn));
   });
 
-  // Mark scientific/advanced buttons (hidden in Basic mode)
-  document.querySelectorAll('.btn[data-action="sci"], .btn[data-action="const"]').forEach(b => b.classList.add("sci-btn"));
-  const powerBtn = document.querySelector('.btn[data-action="op"][data-value="^"]');
-  if (powerBtn) powerBtn.classList.add("sci-btn");
+  // Mark scientific containers (hidden in Basic mode)
+  const sciContainers = document.querySelectorAll(".key-row.sci-row");
 
   let calcMode = "scientific"; // "scientific" | "basic"
   const modeToggle = document.getElementById("modeToggle");
-  const sciButtons = document.querySelectorAll(".sci-btn");
   function setMode(mode) {
     calcMode = mode;
     document.documentElement.setAttribute("data-mode", mode);
     modeToggle.textContent = mode === "scientific" ? "Scientific" : "Basic";
     modeToggle.classList.toggle("basic", mode === "basic");
-    sciButtons.forEach(b => {
-      b.style.display = mode === "basic" ? "none" : "";
+    sciContainers.forEach((c) => {
+      c.style.display = mode === "basic" ? "none" : "";
     });
   }
   modeToggle.addEventListener("click", () => setMode(calcMode === "scientific" ? "basic" : "scientific"));

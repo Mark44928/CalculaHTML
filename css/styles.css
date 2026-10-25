@@ -574,12 +574,17 @@ body {
 
 /* ---------- Buttons grid ---------- */
 .keys {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+.key-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: var(--gap);
 }
 @media (max-width: 420px) {
-  .keys { grid-template-columns: repeat(4, 1fr); }
+  .key-row { grid-template-columns: repeat(4, 1fr); }
 }
 
 .btn {

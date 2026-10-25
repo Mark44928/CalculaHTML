@@ -244,21 +244,18 @@
     btn.addEventListener("click", () => handleAction(btn.dataset.action, btn));
   });
 
-  // Mark scientific/advanced buttons (hidden in Basic mode)
-  document.querySelectorAll('.btn[data-action="sci"], .btn[data-action="const"]').forEach(b => b.classList.add("sci-btn"));
-  const powerBtn = document.querySelector('.btn[data-action="op"][data-value="^"]');
-  if (powerBtn) powerBtn.classList.add("sci-btn");
+  // Mark scientific containers (hidden in Basic mode)
+  const sciContainers = document.querySelectorAll(".key-row.sci-row");
 
   let calcMode = "scientific"; // "scientific" | "basic"
   const modeToggle = document.getElementById("modeToggle");
-  const sciButtons = document.querySelectorAll(".sci-btn");
   function setMode(mode) {
     calcMode = mode;
     document.documentElement.setAttribute("data-mode", mode);
     modeToggle.textContent = mode === "scientific" ? "Scientific" : "Basic";
     modeToggle.classList.toggle("basic", mode === "basic");
-    sciButtons.forEach(b => {
-      b.style.display = mode === "basic" ? "none" : "";
+    sciContainers.forEach((c) => {
+      c.style.display = mode === "basic" ? "none" : "";
     });
   }
   modeToggle.addEventListener("click", () => setMode(calcMode === "scientific" ? "basic" : "scientific"));
