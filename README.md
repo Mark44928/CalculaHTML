@@ -110,7 +110,9 @@ Recent Chrome, Edge, Firefox, and Safari. The layout uses `color-mix()` and mode
 
 ## Contributing
 
-Issues and pull requests are welcome. Keep the project framework-free and dependency-free.
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Keep the project framework-free and dependency-free; this project follows the
+standard [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
