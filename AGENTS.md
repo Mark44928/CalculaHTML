@@ -2,9 +2,9 @@
 
 ## Project
 
-Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.html` directly.
+Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.html` directly. CI at `.github/workflows/ci.yml`.
 
-## Termux notes
+## Termux Notes
 
 - Working dir: `/data/data/com.termux/files/home/CalculaHTML`
 - Use `TMPDIR=/data/data/com.termux/files/usr/tmp` for any temp work.
@@ -19,11 +19,13 @@ Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.ht
 
 ## Tasks
 
-- Adding a theme: add a `[data-theme="name"]` block with all variables, then add `<option value="name">`.
-- Adding a button: add `<button class="btn ..." data-action="..." data-value="...">` in the `.keys` grid, then handle the action in `handleAction`.
-- Test by opening `index.html` in a browser or a simple static server: `python3 -m http.server 8080`.
+- Theme: add `[data-theme="name"]` block with all CSS vars, then `<option value="name">`.
+- Button: add `<button class="btn" data-action data-value>` in `.keys` grid, handle in `handleAction`.
+- Test: open `index.html` in a browser or `python3 -m http.server 8080`.
 
 ## Verification
 
-- `node --check js/app.js` for JS syntax.
-- Manual smoke test in browser.
+- `node --check js/app.js` — JS syntax
+- `node --check sw.js` — service worker syntax
+- `JSON.parse(fs.readFileSync('manifest.webmanifest'))` — manifest valid
+- Manual smoke test in browser
