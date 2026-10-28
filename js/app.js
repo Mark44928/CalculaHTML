@@ -7,6 +7,16 @@
   const displayMem = document.getElementById("memIndicator");
   const angleIndicator = document.getElementById("angleIndicator");
   const historyList = document.getElementById("historyList");
+  historyList.addEventListener("click", (ev) => {
+    const row = ev.target.closest(".row");
+    if (!row) return;
+    const h = history[Number(row.dataset.i)];
+    if (!h) return;
+    current = h.result;
+    justEvaluated = false;
+    updateDisplay();
+    showToast("Result loaded to display");
+  });
   const memoryList = document.getElementById("memoryList");
   const themeSelect = document.getElementById("themeSelect");
   const toast = document.getElementById("toast");
@@ -39,8 +49,19 @@
     return s;
   }
 
+  // Display-only grouping: insert thousands separators into the integer
+  // part. Internal state (current/previous/memory/history) stays raw.
+  function groupThousands(s) {
+    if (typeof s !== "string") return String(s);
+    if (s.includes("e") || s.includes("E")) return s;
+    const m = /^(-?)(\d+)(\.\d*)?$/.exec(s);
+    if (!m) return s;
+    const grouped = m[2].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return m[1] + grouped + (m[3] || "");
+  }
+
   function updateDisplay() {
-    displayResult.textContent = current;
+    displayResult.textContent = groupThousands(current);
     if (operator && !justEvaluated) {
       displayExpr.textContent = (previous || "") + " " + symbolFor(operator);
     } else if (justEvaluated && previous) {
@@ -73,8 +94,8 @@
       historyList.innerHTML = '<div class="empty">No calculations yet</div>';
       return;
     }
-    historyList.innerHTML = history.map(h =>
-      `<div class="row"><span class="e">${escapeHtml(h.expr)}</span><span class="r">${escapeHtml(h.result)}</span></div>`
+    historyList.innerHTML = history.map((h, i) =>
+      `<div class="row" data-i="${i}" title="Click to reuse result"><span class="e">${escapeHtml(h.expr)}</span><span class="r">${escapeHtml(h.result)}</span></div>`
     ).join("");
   }
   function escapeHtml(s) {

@@ -673,7 +673,8 @@ body {
 }
 .panel h3 button:hover { color: var(--fg); background: var(--btn-hover); }
 .panel .list { font-family: var(--mono); font-size: .8rem; line-height: 1.5; }
-.panel .list .row { display:flex; justify-content:space-between; gap:8px; padding:2px 0; border-bottom: 1px dashed var(--border); }
+.panel .list .row { display:flex; justify-content:space-between; gap:8px; padding:2px 0; border-bottom: 1px dashed var(--border); cursor:pointer; transition:background .12s ease; }
+.panel .list .row:hover { background: color-mix(in srgb, var(--fg) 8%, transparent); }
 .panel .list .row:last-child { border-bottom: none; }
 .panel .list .row .e { color: var(--fg-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .panel .list .row .r { color: var(--fg); font-weight:600; }
