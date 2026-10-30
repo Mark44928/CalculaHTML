@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/github/stars/Mark44928/CalculaHTML?style=social" alt="Stars">
 </p>
 
-A feature-rich, responsive calculator that runs entirely in the browser: 14 themes plus a System (auto) mode, scientific functions, memory, a history tape, keyboard support, and offline PWA support.
+A feature-rich, responsive calculator that runs entirely in the browser: 15 themes plus a System (auto) mode, scientific functions, memory, a history tape, keyboard support, and offline PWA support.
 
 **Live demo:** https://mark44928.github.io/CalculaHTML/
 
@@ -22,7 +22,7 @@ A feature-rich, responsive calculator that runs entirely in the browser: 14 them
 - Scientific functions: `sin cos tan log ln √ x² x³ x^y 1/x n!`, constants `π` and `e`
 - Memory: `MC MR M+ M− MS`
 - History tape with up to 40 entries
-- 14 themes + System (auto light/dark): Dark, Light, Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin Mocha, One Dark, Solarized Dark, Rose Pine, Monokai, GitHub Dark, Old Dark
+- 15 themes + System (auto light/dark): Dark, Light, Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin Mocha, One Dark, Solarized Dark, Rose Pine, Monokai, GitHub Dark, Old Dark, Greenit
 - Keyboard support, copy result, angle mode (DEG/RAD)
 - Responsive layout, accessible controls, reduced-motion friendly
 - Progressive Web App: installable, offline-capable (manifest + service worker)
@@ -88,6 +88,7 @@ CalculaHTML/
 ├── README.md
 ├── AGENTS.md
 ├── LICENSE
+├── Makefile
 └── .github/workflows/
     ├── ci.yml
     └── pages.yml
@@ -99,7 +100,9 @@ No dependencies to install.
 
 ```bash
 npm run check        # node --check js/app.js
-npm run start        # python3 -m http.server 8080
+make check           # node --check + manifest + CSS sync verification
+make sync-size       # sync css/styles.css into index.html inline <style>
+make start           # python3 -m http.server 8080
 ```
 
 CI runs the JavaScript syntax check and validates `manifest.webmanifest` on every push and pull request.

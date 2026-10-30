@@ -28,4 +28,6 @@ Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.ht
 - `node --check js/app.js` — JS syntax
 - `node --check sw.js` — service worker syntax
 - `JSON.parse(fs.readFileSync('manifest.webmanifest'))` — manifest valid
+- `make check` — all of the above + verifies inline CSS matches `css/styles.css`
+- `make sync-size` — syncs `css/styles.css` into the inline `<style>` in `index.html`
 - Manual smoke test in browser
