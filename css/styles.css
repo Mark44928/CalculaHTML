@@ -407,6 +407,32 @@ body {
   --shadow-color: rgba(0,0,0,.5);
 }
 
+/* ---------- Greenit Dark ---------- */
+[data-theme="greenit"] {
+  --bg: #0C1F17;
+  --bg-elev: #122A1F;
+  --surface: #122A1F;
+  --surface-2: #172F25;
+  --fg: #C9E4CE;
+  --fg-muted: #A7C4A3;
+  --fg-dim: #5F7A66;
+  --accent: #7BD88F;
+  --accent-2: #63C9A8;
+  --accent-3: #7FD7C4;
+  --operator: #B8CC7A;
+  --equals: #7BD88F;
+  --danger: #C07A6E;
+  --success: #7BD88F;
+  --border: rgba(95,122,102,.08);
+  --btn-bg: #122A1F;
+  --btn-fg: #C9E4CE;
+  --btn-hover: #172F25;
+  --btn-active: #224735;
+  --display-bg: #0A1A10;
+  --display-fg: #7BD88F;
+  --shadow-color: rgba(0,0,0,.45);
+}
+
 /* ---------- Theme swatches ---------- */
 .theme-swatches {
   display: flex;
@@ -689,6 +715,74 @@ body {
 }
 .footer a { color: var(--accent); text-decoration: none; }
 .footer a:hover { text-decoration: underline; }
+
+/* ---------- Greenit info bar & modal ---------- */
+.greenit-bar {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  text-align: center;
+  z-index: 10;
+}
+.greenit-info-btn {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 18px;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: background var(--transition), color var(--transition);
+}
+.greenit-info-btn:hover {
+  background: var(--btn-hover);
+  color: var(--accent);
+}
+.greenit-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  z-index: 100;
+}
+.greenit-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.greenit-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 20px 60px var(--shadow-color);
+  position: relative;
+}
+.greenit-card p {
+  margin: 0 0 12px;
+  font-size: .85rem;
+  color: var(--fg);
+}
+.greenit-card a { color: var(--accent); text-decoration: none; }
+.greenit-card a:hover { text-decoration: underline; }
+.greenit-close {
+  position: absolute;
+  top: 6px; right: 10px;
+  background: none; border: none;
+  font-size: 1.5rem; line-height: 1;
+  color: var(--fg-dim);
+  cursor: pointer;
+  padding: 0; width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
 
 /* ---------- Scrollbar ---------- */
 ::-webkit-scrollbar { width: 8px; height: 8px; }

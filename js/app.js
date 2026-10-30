@@ -264,6 +264,25 @@
     btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
   });
 
+  // Greenit info modal
+  const greenitModal = document.getElementById("greenitModal");
+  const greenitInfoBtn = document.getElementById("greenitInfoBtn");
+  const greenitClose = document.getElementById("greenitClose");
+  greenitInfoBtn.addEventListener("click", () => {
+    greenitModal.classList.add("show");
+    greenitModal.setAttribute("aria-hidden", "false");
+  });
+  greenitClose.addEventListener("click", () => {
+    greenitModal.classList.remove("show");
+    greenitModal.setAttribute("aria-hidden", "true");
+  });
+  greenitModal.addEventListener("click", (e) => {
+    if (e.target === greenitModal) {
+      greenitModal.classList.remove("show");
+      greenitModal.setAttribute("aria-hidden", "true");
+    }
+  });
+
   // Button handling
   document.querySelectorAll(".btn").forEach(btn => {
     btn.addEventListener("click", () => handleAction(btn.dataset.action, btn));

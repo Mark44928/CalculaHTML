@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>CalculaHTML — Modern Calculator</title>
-  <meta name="description" content="Feature-rich modern HTML calculator with multiple themes (Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin, One Dark, Solarized, Monokai, Rose Pine, GitHub Dark, Old Dark, Dark, Light)." />
+  <meta name="description" content="Feature-rich modern HTML calculator with multiple themes (Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin, One Dark, Solarized, Monokai, Rose Pine, GitHub Dark, Old Dark, Dark, Light, Greenit)." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -425,6 +425,32 @@ body {
   --shadow-color: rgba(0,0,0,.5);
 }
 
+/* ---------- Greenit Dark ---------- */
+[data-theme="greenit"] {
+  --bg: #0C1F17;
+  --bg-elev: #122A1F;
+  --surface: #122A1F;
+  --surface-2: #172F25;
+  --fg: #C9E4CE;
+  --fg-muted: #A7C4A3;
+  --fg-dim: #5F7A66;
+  --accent: #7BD88F;
+  --accent-2: #63C9A8;
+  --accent-3: #7FD7C4;
+  --operator: #B8CC7A;
+  --equals: #7BD88F;
+  --danger: #C07A6E;
+  --success: #7BD88F;
+  --border: rgba(95,122,102,.08);
+  --btn-bg: #122A1F;
+  --btn-fg: #C9E4CE;
+  --btn-hover: #172F25;
+  --btn-active: #224735;
+  --display-bg: #0A1A10;
+  --display-fg: #7BD88F;
+  --shadow-color: rgba(0,0,0,.45);
+}
+
 /* ---------- Theme swatches ---------- */
 .theme-swatches {
   display: flex;
@@ -691,7 +717,8 @@ body {
 }
 .panel h3 button:hover { color: var(--fg); background: var(--btn-hover); }
 .panel .list { font-family: var(--mono); font-size: .8rem; line-height: 1.5; }
-.panel .list .row { display:flex; justify-content:space-between; gap:8px; padding:2px 0; border-bottom: 1px dashed var(--border); }
+.panel .list .row { display:flex; justify-content:space-between; gap:8px; padding:2px 0; border-bottom: 1px dashed var(--border); cursor:pointer; transition:background .12s ease; }
+.panel .list .row:hover { background: color-mix(in srgb, var(--fg) 8%, transparent); }
 .panel .list .row:last-child { border-bottom: none; }
 .panel .list .row .e { color: var(--fg-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .panel .list .row .r { color: var(--fg); font-weight:600; }
@@ -706,6 +733,74 @@ body {
 }
 .footer a { color: var(--accent); text-decoration: none; }
 .footer a:hover { text-decoration: underline; }
+
+/* ---------- Greenit info bar & modal ---------- */
+.greenit-bar {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  text-align: center;
+  z-index: 10;
+}
+.greenit-info-btn {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 18px;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: background var(--transition), color var(--transition);
+}
+.greenit-info-btn:hover {
+  background: var(--btn-hover);
+  color: var(--accent);
+}
+.greenit-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  z-index: 100;
+}
+.greenit-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.greenit-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 20px 60px var(--shadow-color);
+  position: relative;
+}
+.greenit-card p {
+  margin: 0 0 12px;
+  font-size: .85rem;
+  color: var(--fg);
+}
+.greenit-card a { color: var(--accent); text-decoration: none; }
+.greenit-card a:hover { text-decoration: underline; }
+.greenit-close {
+  position: absolute;
+  top: 6px; right: 10px;
+  background: none; border: none;
+  font-size: 1.5rem; line-height: 1;
+  color: var(--fg-dim);
+  cursor: pointer;
+  padding: 0; width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
 
 /* ---------- Scrollbar ---------- */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -760,6 +855,7 @@ body {
           <option value="monokai">Monokai</option>
           <option value="githubdark">GitHub Dark</option>
           <option value="olddark">Old Dark</option>
+          <option value="greenit">Greenit (Dark)</option>
         </select>
       </div>
       <button id="modeToggle" class="mode-btn" data-mode="scientific" title="Toggle between Basic and Scientific mode">Scientific</button>
@@ -781,6 +877,7 @@ body {
       <button data-theme="monokai" title="Monokai" style="background:#a6e22e"></button>
       <button data-theme="githubdark" title="GitHub Dark" style="background:#58a6ff"></button>
       <button data-theme="olddark" title="Old Dark" style="background:#ffb347"></button>
+      <button data-theme="greenit" title="Greenit" style="background:#7BD88F"></button>
     </div>
       <div class="display">
         <div class="expr" id="expr" aria-live="polite"></div>
@@ -880,6 +977,18 @@ body {
       CalculaHTML · open source ·
       <a href="https://github.com/Mark44928/CalculaHTML" target="_blank" rel="noopener">GitHub</a>
     </footer>
+
+    <div class="greenit-bar">
+      <button id="greenitInfoBtn" class="greenit-info-btn">What's Greenit?</button>
+    </div>
+
+    <div class="greenit-modal" id="greenitModal" aria-hidden="true">
+      <div class="greenit-card">
+        <button class="greenit-close" id="greenitClose" aria-label="Close">×</button>
+        <p>Greenit is a green-injected theme family for terminals and Vim — dark & light, every color hue-shifted toward green.</p>
+        <p>Get it: <a href="https://github.com/Mark44928/Greenit" target="_blank" rel="noopener">github.com/Mark44928/Greenit</a></p>
+      </div>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -1128,6 +1237,25 @@ body {
 
   document.querySelectorAll(".theme-swatches button").forEach(btn => {
     btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
+  });
+
+  // Greenit info modal
+  const greenitModal = document.getElementById("greenitModal");
+  const greenitInfoBtn = document.getElementById("greenitInfoBtn");
+  const greenitClose = document.getElementById("greenitClose");
+  greenitInfoBtn.addEventListener("click", () => {
+    greenitModal.classList.add("show");
+    greenitModal.setAttribute("aria-hidden", "false");
+  });
+  greenitClose.addEventListener("click", () => {
+    greenitModal.classList.remove("show");
+    greenitModal.setAttribute("aria-hidden", "true");
+  });
+  greenitModal.addEventListener("click", (e) => {
+    if (e.target === greenitModal) {
+      greenitModal.classList.remove("show");
+      greenitModal.setAttribute("aria-hidden", "true");
+    }
   });
 
   // Button handling
