@@ -1,7 +1,9 @@
-const CACHE_NAME = "calculahtml-v1";
+const CACHE_NAME = "calculahtml-v3";
 const SHELL = [
   "./",
   "./index.html",
+  "./js/app.js",
+  "./css/styles.css",
   "./manifest.webmanifest",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
@@ -37,6 +39,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request))
+    fetch(request).then((res) => {
+      const copy = res.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+      return res;
+    }).catch(() => caches.match(request))
   );
 });
