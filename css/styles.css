@@ -802,6 +802,28 @@ body {
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* ---------- New UI helpers ---------- */
+.meta-btn {
+  background: color-mix(in srgb, var(--accent) 14%, var(--btn-bg));
+  color: var(--accent);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: background var(--transition), color var(--transition);
+}
+.meta-btn:hover { background: color-mix(in srgb, var(--accent) 24%, var(--btn-hover)); }
+.meta-btn:disabled { opacity: .4; cursor: not-allowed; }
+.hist-del {
+  background: none; border: none; color: var(--fg-dim); cursor: pointer;
+  font-size: .9rem; padding: 0 4px; border-radius: 4px; line-height: 1;
+}
+.hist-del:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.topbar .mode-btn { padding: 6px 10px; font-size: .8rem; }
+
 /* ---------- Responsive tweaks ---------- */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }

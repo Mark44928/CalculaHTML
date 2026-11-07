@@ -7,16 +7,6 @@
   const displayMem = document.getElementById("memIndicator");
   const angleIndicator = document.getElementById("angleIndicator");
   const historyList = document.getElementById("historyList");
-  historyList.addEventListener("click", (ev) => {
-    const row = ev.target.closest(".row");
-    if (!row) return;
-    const h = history[Number(row.dataset.i)];
-    if (!h) return;
-    current = h.result;
-    justEvaluated = false;
-    updateDisplay();
-    showToast("Result loaded to display");
-  });
   const memoryList = document.getElementById("memoryList");
   const themeSelect = document.getElementById("themeSelect");
   const toast = document.getElementById("toast");
@@ -28,30 +18,43 @@
   let memory = 0;
   let hasMemory = false;
   const history = [];
+  const undoStack = [];
+  const redoStack = [];
+
+  const settings = loadSettings();
+
+  function loadSettings() {
+    const defaults = { sound: false, haptics: true, thousands: true, precision: 12 };
+    try {
+      const raw = localStorage.getItem("calc-settings");
+      return raw ? Object.assign(defaults, JSON.parse(raw)) : defaults;
+    } catch (e) { return defaults; }
+  }
+  function saveSettings() {
+    try { localStorage.setItem("calc-settings", JSON.stringify(settings)); } catch (e) {}
+  }
 
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add("show");
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toast.classList.remove("show"), 1400);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 1600);
   }
 
   function formatNumber(n) {
     if (typeof n === "string") return n;
     if (!isFinite(n)) return String(n);
-    // avoid scientific for reasonable ranges
     let s = String(n);
-    if (s.includes("e")) return s;
+    if (s.includes("e") || s.includes("E")) return s;
     if (s.length > 14) {
-      const fixed = n.toPrecision(12);
+      const fixed = n.toPrecision(settings.precision || 12);
       return parseFloat(fixed).toString();
     }
     return s;
   }
 
-  // Display-only grouping: insert thousands separators into the integer
-  // part. Internal state (current/previous/memory/history) stays raw.
   function groupThousands(s) {
+    if (!settings.thousands) return s;
     if (typeof s !== "string") return String(s);
     if (s.includes("e") || s.includes("E")) return s;
     const m = /^(-?)(\d+)(\.\d*)?$/.exec(s);
@@ -65,7 +68,6 @@
     if (operator && !justEvaluated) {
       displayExpr.textContent = (previous || "") + " " + symbolFor(operator);
     } else if (justEvaluated && previous) {
-      // show the full evaluated expression if available
       displayExpr.textContent = previous.includes(" ") ? previous : "";
     } else {
       displayExpr.textContent = "";
@@ -78,15 +80,19 @@
       displayMem.classList.add("inactive");
     }
     angleIndicator.textContent = angleMode.toUpperCase();
+  const copyBtn = document.getElementById("copyBtn");
+  if (copyBtn) {
+    copyBtn.disabled = (current === "Error");
+  }
   }
 
   function symbolFor(op) {
-    return { "+": "+", "-": "−", "*": "×", "/": "÷", "^": "^" }[op] || op;
+    return { "+": "+", "-": "−", "*": "×", "/": "÷", "^": "^", "%": "%" }[op] || op;
   }
 
   function pushHistory(expr, result) {
     history.unshift({ expr, result });
-    if (history.length > 40) history.pop();
+    if (history.length > 100) history.pop();
     renderHistory();
   }
   function renderHistory() {
@@ -95,12 +101,31 @@
       return;
     }
     historyList.innerHTML = history.map((h, i) =>
-      `<div class="row" data-i="${i}" title="Click to reuse result"><span class="e">${escapeHtml(h.expr)}</span><span class="r">${escapeHtml(h.result)}</span></div>`
+      `<div class="row" data-i="${i}" title="Click to reuse result"><span class="e">${escapeHtml(h.expr)}</span><span class="r">${escapeHtml(h.result)}</span><button class="hist-del" data-del="${i}" title="Delete">×</button></div>`
     ).join("");
   }
   function escapeHtml(s) {
     return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
+
+  historyList.addEventListener("click", (ev) => {
+    const del = ev.target.closest(".hist-del");
+    if (del) {
+      const i = Number(del.dataset.del);
+      if (!isNaN(i) && history[i]) { history.splice(i, 1); renderHistory(); }
+      return;
+    }
+    const row = ev.target.closest(".row");
+    if (!row) return;
+    const h = history[Number(row.dataset.i)];
+    if (!h) return;
+    current = h.result;
+    justEvaluated = false;
+    operator = null;
+    previous = "";
+    updateDisplay();
+    showToast("Result loaded");
+  });
 
   function inputDigit(d) {
     if (justEvaluated) { current = d === "." ? "0." : d; justEvaluated = false; return; }
@@ -110,12 +135,11 @@
     } else {
       if (current === "0") current = d; else current += d;
     }
-    if (current.length > 18) current = current.slice(0, 18);
+    if (current.length > 20) current = current.slice(0, 20);
   }
 
   function inputOperator(op) {
     if (operator && !justEvaluated) {
-      // chain evaluate
       evaluate(true);
     }
     previous = current;
@@ -134,7 +158,7 @@
       case "-": res = a - b; break;
       case "*": res = a * b; break;
       case "/":
-        if (b === 0) { shake(); current = "Error"; operator = null; previous = ""; justEvaluated = true; updateDisplay(); return; }
+        if (b === 0) { shake(); current = "Error"; operator = null; previous = ""; justEvaluated = true; updateDisplay(); beep(220); return; }
         res = a / b; break;
       case "^": res = Math.pow(a, b); break;
       case "%": res = a % b; break;
@@ -166,7 +190,7 @@
     if (current === "-" || current === "") current = "0";
   }
   function toggleSign() {
-    if (current === "0") return;
+    if (current === "0" || current === "Error") return;
     if (current.startsWith("-")) current = current.slice(1);
     else current = "-" + current;
   }
@@ -176,7 +200,6 @@
     justEvaluated = false;
   }
 
-  // Scientific functions applied to current
   const sci = {
     sin: (x) => Math.sin(toRad(x)),
     cos: (x) => Math.cos(toRad(x)),
@@ -184,7 +207,11 @@
     asin: (x) => toDeg(Math.asin(x)),
     acos: (x) => toDeg(Math.acos(x)),
     atan: (x) => toDeg(Math.atan(x)),
+    sinh: (x) => Math.sinh(x),
+    cosh: (x) => Math.cosh(x),
+    tanh: (x) => Math.tanh(x),
     log: (x) => Math.log10(x),
+    log2: (x) => Math.log2(x),
     ln: (x) => Math.log(x),
     sqrt: (x) => Math.sqrt(x),
     cbrt: (x) => Math.cbrt(x),
@@ -194,8 +221,15 @@
     fact: (x) => factorial(Math.round(x)),
     abs: (x) => Math.abs(x),
     exp: (x) => Math.exp(x),
+    floor: (x) => Math.floor(x),
+    ceil: (x) => Math.ceil(x),
+    round: (x) => Math.round(x),
+    sign: (x) => Math.sign(x),
+    mod: (x) => x,
+    nCr: (x) => x,
+    rand: () => Math.random(),
   };
-  let angleMode = "deg"; // deg | rad
+  let angleMode = "deg";
   function toRad(x) { return angleMode === "deg" ? (x * Math.PI / 180) : x; }
   function toDeg(x) { return angleMode === "deg" ? (x * 180 / Math.PI) : x; }
   function factorial(n) {
@@ -206,43 +240,87 @@
 
   function applySci(name) {
     const x = parseFloat(current);
-    let res;
-    if (name === "pi") { current = formatNumber(Math.PI); justEvaluated = false; updateDisplay(); return; }
-    if (name === "e") { current = formatNumber(Math.E); justEvaluated = false; updateDisplay(); return; }
-    if (name === "pow10") { current = formatNumber(Math.pow(10, x)); justEvaluated = false; updateDisplay(); return; }
+    if (name === "pi") { current = formatNumber(Math.PI); justEvaluated = false; updateDisplay(); beep(660); return; }
+    if (name === "e") { current = formatNumber(Math.E); justEvaluated = false; updateDisplay(); beep(660); return; }
+    if (name === "tau") { current = formatNumber(Math.PI * 2); justEvaluated = false; updateDisplay(); beep(660); return; }
+    if (name === "phi") { current = formatNumber((1 + Math.sqrt(5)) / 2); justEvaluated = false; updateDisplay(); beep(660); return; }
+    if (name === "pow10") { current = formatNumber(Math.pow(10, x)); justEvaluated = true; pushHistory("10^(" + x + ")", current); updateDisplay(); beep(550); return; }
+    if (name === "pow2") { current = formatNumber(Math.pow(2, x)); justEvaluated = true; pushHistory("2^(" + x + ")", current); updateDisplay(); beep(550); return; }
+    if (name === "yroot") {
+      // use current as y, ask? Use previous? Simplify: sqrt of x already; yroot needs two operands. Implement as x^(1/y) using previous? Skip complex; use nth root via prompt
+      const n = parseFloat(prompt("Root degree n:", "2"));
+      if (isNaN(n) || n === 0) return;
+      const r = Math.pow(x, 1 / n);
+      pushHistory(n + "√(" + x + ")", formatNumber(r));
+      current = formatNumber(r); justEvaluated = true; updateDisplay(); return;
+    }
+    if (name === "nCr") {
+      const n = Math.round(x);
+      const r = Math.round(parseFloat(prompt("r:", "0")));
+      if (isNaN(r)) return;
+      current = formatNumber(comb(n, r)); justEvaluated = true;
+      pushHistory("C(" + n + "," + r + ")", current); updateDisplay(); return;
+    }
+    if (name === "nPr") {
+      const n = Math.round(x);
+      const r = Math.round(parseFloat(prompt("r:", "0")));
+      if (isNaN(r)) return;
+      current = formatNumber(perm(n, r)); justEvaluated = true;
+      pushHistory("P(" + n + "," + r + ")", current); updateDisplay(); return;
+    }
+    if (name === "rand") {
+      current = formatNumber(Math.random()); justEvaluated = false; updateDisplay(); return;
+    }
     if (sci[name]) {
-      res = sci[name](x);
+      let res;
+      try { res = sci[name](x); } catch (e) { res = NaN; }
+      if (name === "mod") {
+        const m = parseFloat(prompt("modulus:", "1")); res = x % m;
+      }
       const exprStr = name + "(" + current + ")";
       pushHistory(exprStr, formatNumber(res));
       current = formatNumber(res);
       justEvaluated = true;
     }
+    updateDisplay();
+    beep(550);
   }
 
-  function insertConstant(name) {
-    if (name === "pi") current = (justEvaluated ? "" : current === "0" ? "" : current) + Math.PI.toString().slice(0,12);
-    if (name === "e") current = (justEvaluated ? "" : current === "0" ? "" : current) + Math.E.toString().slice(0,12);
-    justEvaluated = false;
-    if (current === "" ) current = "0";
+  function comb(n, r) {
+    if (r < 0 || r > n || n < 0) return NaN;
+    let res = 1;
+    for (let i = 1; i <= r; i++) res = res * (n - r + i) / i;
+    return Math.round(res);
+  }
+  function perm(n, r) {
+    if (r < 0 || r > n || n < 0) return NaN;
+    let res = 1;
+    for (let i = 0; i < r; i++) res *= (n - i);
+    return res;
   }
 
   // Memory
-  function memClear() { memory = 0; hasMemory = false; renderMemory(); updateDisplay(); }
-  function memRecall() { current = formatNumber(memory); justEvaluated = false; updateDisplay(); }
-  function memAdd() { memory += parseFloat(current); hasMemory = true; renderMemory(); showToast("M+"); }
-  function memSub() { memory -= parseFloat(current); hasMemory = (memory !== 0); renderMemory(); showToast("M−"); }
-  function memStore() { memory = parseFloat(current); hasMemory = true; renderMemory(); showToast("MS"); }
+  function memClear() { memory = 0; hasMemory = false; renderMemory(); updateDisplay(); showToast("MC"); }
+  function memRecall() { current = formatNumber(memory); justEvaluated = false; updateDisplay(); showToast("MR"); }
+  function memAdd() { memory += parseFloat(current) || 0; hasMemory = true; renderMemory(); showToast("M+"); }
+  function memSub() { memory -= parseFloat(current) || 0; hasMemory = (memory !== 0); renderMemory(); showToast("M−"); }
+  function memStore() { memory = parseFloat(current) || 0; hasMemory = true; renderMemory(); showToast("MS"); }
   function renderMemory() {
     if (!hasMemory) {
       memoryList.innerHTML = '<div class="empty">Memory empty</div>';
       return;
     }
-    memoryList.innerHTML = `<div class="row"><span class="e">Memory</span><span class="r">${formatNumber(memory)}</span></div>`;
+    memoryList.innerHTML = `<div class="row"><span class="e">Memory</span><span class="r">${formatNumber(memory)}</span></div><div class="row" style="cursor:default"><span class="e" style="font-size:.7rem">Tap a value above? Use MR</span></div>`;
   }
+  memoryList.addEventListener("click", () => { if (hasMemory) { memRecall(); } });
 
   // Theme handling
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  function systemTheme() { return prefersDark ? "dark" : "light"; }
+  const prefersDarkMQ = window.matchMedia("(prefers-color-scheme: dark)");
+  function systemTheme() { return prefersDarkMQ.matches ? "dark" : "light"; }
+  prefersDarkMQ.addEventListener("change", () => {
+    const saved = (function(){try{return localStorage.getItem("calc-theme");}catch(e){return null;}})();
+    if (saved === "system" || !saved) applyTheme("system");
+  });
 
   function applyTheme(name) {
     const effective = name === "system" ? systemTheme() : name;
@@ -259,7 +337,6 @@
   applyTheme(savedTheme || "system");
 
   themeSelect.addEventListener("change", (e) => applyTheme(e.target.value));
-
   document.querySelectorAll(".theme-swatches button").forEach(btn => {
     btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
   });
@@ -268,41 +345,137 @@
   const greenitModal = document.getElementById("greenitModal");
   const greenitInfoBtn = document.getElementById("greenitInfoBtn");
   const greenitClose = document.getElementById("greenitClose");
-  greenitInfoBtn.addEventListener("click", () => {
+  if (greenitInfoBtn) greenitInfoBtn.addEventListener("click", () => {
     greenitModal.classList.add("show");
     greenitModal.setAttribute("aria-hidden", "false");
   });
-  greenitClose.addEventListener("click", () => {
+  if (greenitClose) greenitClose.addEventListener("click", () => {
     greenitModal.classList.remove("show");
     greenitModal.setAttribute("aria-hidden", "true");
   });
-  greenitModal.addEventListener("click", (e) => {
+  if (greenitModal) greenitModal.addEventListener("click", (e) => {
     if (e.target === greenitModal) {
       greenitModal.classList.remove("show");
       greenitModal.setAttribute("aria-hidden", "true");
     }
   });
 
-  // Button handling
-  document.querySelectorAll(".btn").forEach(btn => {
-    btn.addEventListener("click", () => handleAction(btn.dataset.action, btn));
+  // Settings modal
+  const settingsModal = document.getElementById("settingsModal");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsClose = document.getElementById("settingsClose");
+  function openSettings() {
+    if (!settingsModal) return;
+    syncSettingsUI();
+    settingsModal.classList.add("show");
+    settingsModal.setAttribute("aria-hidden", "false");
+  }
+  function closeSettings() {
+    if (!settingsModal) return;
+    settingsModal.classList.remove("show");
+    settingsModal.setAttribute("aria-hidden", "true");
+  }
+  if (settingsBtn) settingsBtn.addEventListener("click", openSettings);
+  if (settingsClose) settingsClose.addEventListener("click", closeSettings);
+  if (settingsModal) settingsModal.addEventListener("click", (e) => {
+    if (e.target === settingsModal) closeSettings();
   });
 
-  // Mark scientific containers (hidden in Basic mode)
+  function syncSettingsUI() {
+    const sSound = document.getElementById("setSound");
+    const sHaptics = document.getElementById("setHaptics");
+    const sThousands = document.getElementById("setThousands");
+    const sPrecision = document.getElementById("setPrecision");
+    if (sSound) sSound.checked = settings.sound;
+    if (sHaptics) sHaptics.checked = settings.haptics;
+    if (sThousands) sThousands.checked = settings.thousands;
+    if (sPrecision) sPrecision.value = settings.precision;
+  }
+  document.addEventListener("change", (e) => {
+    if (e.target && e.target.id === "setSound") { settings.sound = e.target.checked; saveSettings(); }
+    if (e.target && e.target.id === "setHaptics") { settings.haptics = e.target.checked; saveSettings(); }
+    if (e.target && e.target.id === "setThousands") { settings.thousands = e.target.checked; saveSettings(); updateDisplay(); }
+    if (e.target && e.target.id === "setPrecision") { settings.precision = parseInt(e.target.value, 10) || 12; saveSettings(); }
+  });
+
+  // Undo / redo
+  function snapshot() { return { current, previous, operator, justEvaluated, memory, hasMemory }; }
+  function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 60) undoStack.shift(); redoStack.length = 0; }
+  function restoreSnap(s) { current = s.current; previous = s.previous; operator = s.operator; justEvaluated = s.justEvaluated; memory = s.memory; hasMemory = s.hasMemory; renderMemory(); updateDisplay(); }
+  function undo() {
+    if (!undoStack.length) { showToast("Nothing to undo"); return; }
+    redoStack.push(snapshot());
+    restoreSnap(undoStack.pop());
+    showToast("Undo");
+  }
+  function redo() {
+    if (!redoStack.length) { showToast("Nothing to redo"); return; }
+    undoStack.push(snapshot());
+    restoreSnap(redoStack.pop());
+    showToast("Redo");
+  }
+
+  // Copy result
+  function copyResult() {
+    const txt = current;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(txt).then(() => showToast("Copied")).catch(() => showToast("Copy failed"));
+    } else {
+      showToast("Clipboard unavailable");
+    }
+  }
+
+  // Export history
+  const copyBtnWire = document.getElementById("copyBtn");
+  if (copyBtnWire) copyBtnWire.addEventListener("click", () => { copyResult(); });
+  const exportHistoryBtn = document.getElementById("exportHistory");
+  if (exportHistoryBtn) exportHistoryBtn.addEventListener("click", () => {
+    if (!history.length) { showToast("No history"); return; }
+    const text = history.map(h => h.expr + " = " + h.result).join("\n");
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => showToast("History copied")).catch(() => showToast("Copy failed"));
+    } else showToast("Clipboard unavailable");
+  });
+  const clearHistoryBtn = document.getElementById("clearHistory");
+  if (clearHistoryBtn) clearHistoryBtn.addEventListener("click", () => { history.length = 0; renderHistory(); });
+
+  // Memory clear button
+  const clearMemoryBtn = document.getElementById("clearMemory");
+  if (clearMemoryBtn) clearMemoryBtn.addEventListener("click", () => { memClear(); });
+
+  // Button handling
+  document.querySelectorAll(".btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mutating = btn.dataset.action && !["copy","history-clear","settings"].includes(btn.dataset.action);
+      // mem actions mutate
+      if (mutating) pushUndo();
+      handleAction(btn.dataset.action, btn);
+      haptic();
+      if (mutating) beep(480);
+    });
+  });
+
   const sciContainers = document.querySelectorAll(".key-row.sci-row");
 
-  let calcMode = "scientific"; // "scientific" | "basic"
+  let calcMode = "scientific";
   const modeToggle = document.getElementById("modeToggle");
   function setMode(mode) {
     calcMode = mode;
     document.documentElement.setAttribute("data-mode", mode);
-    modeToggle.textContent = mode === "scientific" ? "Scientific" : "Basic";
-    modeToggle.classList.toggle("basic", mode === "basic");
+    if (modeToggle) {
+      modeToggle.textContent = mode === "scientific" ? "Scientific" : "Basic";
+      modeToggle.classList.toggle("basic", mode === "basic");
+    }
     sciContainers.forEach((c) => {
       c.style.display = mode === "basic" ? "none" : "";
     });
+    try { localStorage.setItem("calc-mode", mode); } catch (e) {}
   }
-  modeToggle.addEventListener("click", () => setMode(calcMode === "scientific" ? "basic" : "scientific"));
+  if (modeToggle) modeToggle.addEventListener("click", () => setMode(calcMode === "scientific" ? "basic" : "scientific"));
+  const undoBtn = document.getElementById("undoBtn");
+  const redoBtn = document.getElementById("redoBtn");
+  if (undoBtn) undoBtn.addEventListener("click", () => { undo(); });
+  if (redoBtn) redoBtn.addEventListener("click", () => { redo(); });
   try {
     const savedMode = localStorage.getItem("calc-mode");
     setMode(savedMode === "basic" ? "basic" : "scientific");
@@ -322,7 +495,7 @@
       case "percent": percent(); break;
       case "sci": applySci(btn.dataset.value); break;
       case "const": applySci(btn.dataset.value); break;
-      case "mem": 
+      case "mem":
         switch (btn.dataset.value) {
           case "mc": memClear(); break;
           case "mr": memRecall(); break;
@@ -331,27 +504,19 @@
           case "ms": memStore(); break;
         }
         break;
-      case "angle": 
+      case "angle":
         angleMode = angleMode === "deg" ? "rad" : "deg";
-        btn.textContent = angleMode.toUpperCase();
+        if (btn) btn.textContent = angleMode.toUpperCase();
         showToast("Angle: " + angleMode.toUpperCase());
         break;
-      case "copy":
-        copyResult(); break;
+      case "copy": copyResult(); break;
+      case "undo": undo(); break;
+      case "redo": redo(); break;
       case "history-clear":
         history.length = 0; renderHistory(); break;
       default: break;
     }
     updateDisplay();
-  }
-
-  function copyResult() {
-    const txt = current;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(txt).then(() => showToast("Copied")).catch(() => showToast("Copy failed"));
-    } else {
-      showToast("Clipboard unavailable");
-    }
   }
 
   // Keyboard support
@@ -364,21 +529,29 @@
     "%":"percent",
   };
   window.addEventListener("keydown", (e) => {
-    if (e.metaKey || e.ctrlKey) return;
+    if (e.metaKey || e.ctrlKey) {
+      if (e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); updateDisplay(); }
+      if (e.key.toLowerCase() === "c") { /* allow copy text */ }
+      return;
+    }
     const k = e.key;
     if (keyMap[k] !== undefined) {
       e.preventDefault();
       const v = keyMap[k];
-      if (v === "dot") { inputDigit("."); updateDisplay(); return; }
-      if (["0","1","2","3","4","5","6","7","8","9"].includes(v)) { inputDigit(v); updateDisplay(); return; }
-      if (v === "=") { evaluate(false); updateDisplay(); return; }
-      if (v === "back") { backspace(); updateDisplay(); return; }
-      if (v === "ce") { clearEntry(); updateDisplay(); return; }
-      if (v === "clear") { clearAll(); updateDisplay(); return; }
-      if (v === "percent") { percent(); updateDisplay(); return; }
-      // operators
+      if (v === "dot") { pushUndo(); inputDigit("."); updateDisplay(); haptic(); return; }
+      if (["0","1","2","3","4","5","6","7","8","9"].includes(v)) { pushUndo(); inputDigit(v); updateDisplay(); haptic(); return; }
+      if (v === "=") { pushUndo(); evaluate(false); updateDisplay(); haptic(); return; }
+      if (v === "back") { pushUndo(); backspace(); updateDisplay(); haptic(); return; }
+      if (v === "ce") { pushUndo(); clearEntry(); updateDisplay(); haptic(); return; }
+      if (v === "clear") { pushUndo(); clearAll(); updateDisplay(); haptic(); return; }
+      if (v === "percent") { pushUndo(); percent(); updateDisplay(); haptic(); return; }
       const opMap = {"+":"+","-":"-","*":"*","÷":"/","^":"^"};
-      if (opMap[v]) { inputOperator(opMap[v]); updateDisplay(); return; }
+      if (opMap[v]) { pushUndo(); inputOperator(opMap[v]); updateDisplay(); haptic(); return; }
+    }
+    // scientific shortcuts
+    const sciKeys = { s:"sin", c:"cos", t:"tan", l:"ln", r:"sqrt", q:"sq", i:"inv", f:"fact" };
+    if (sciKeys[k.toLowerCase()] && !e.shiftKey) {
+      // only if not typing? apply
     }
   });
 
@@ -387,11 +560,51 @@
     angleMode = angleMode === "deg" ? "rad" : "deg";
     angleIndicator.textContent = angleMode.toUpperCase();
     showToast("Angle: " + angleMode.toUpperCase());
+    updateDisplay();
   });
+
+  // Haptics / sound
+  function haptic() {
+    if (settings.haptics && navigator.vibrate) {
+      try { navigator.vibrate(8); } catch (e) {}
+    }
+  }
+  let audioCtx;
+  function beep(freq) {
+    if (!settings.sound) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      o.frequency.value = freq || 440;
+      g.gain.value = 0.04;
+      o.start();
+      o.stop(audioCtx.currentTime + 0.04);
+    } catch (e) {}
+  }
+
+  // PWA install prompt
+  let deferredPrompt = null;
+  const installBtn = document.getElementById("installBtn");
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.hidden = false;
+  });
+  if (installBtn) installBtn.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.hidden = true;
+  });
+  window.addEventListener("appinstalled", () => { if (installBtn) installBtn.hidden = true; showToast("Installed"); });
 
   // Init
   angleIndicator.textContent = angleMode.toUpperCase();
   renderHistory();
   renderMemory();
   updateDisplay();
+  syncSettingsUI();
 })();
