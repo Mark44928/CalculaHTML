@@ -1,7 +1,7 @@
 {
   "name": "CalculaHTML — Modern Calculator",
   "short_name": "CalculaHTML",
-  "description": "Feature-rich modern HTML calculator with 14 themes, scientific and memory functions, history tape, and keyboard support.",
+  "description": "Feature-rich modern HTML calculator with 15 themes plus a System mode, scientific and memory functions, history tape, and keyboard support.",
   "start_url": "./?source=pwa",
   "scope": "./",
   "id": "./",

@@ -6,7 +6,7 @@ Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.ht
 
 ## Termux Notes
 
-- Working dir: `/data/data/com.termux/files/home/CalculaHTML`
+- Working dir: `~/repos/CalculaHTML` (/data/data/com.termux/files/home/repos/CalculaHTML)
 - Use `TMPDIR=/data/data/com.termux/files/usr/tmp` for any temp work.
 - No FHS paths, no sudo.
 
@@ -28,6 +28,7 @@ Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.ht
 - `node --check js/app.js` — JS syntax
 - `node --check sw.js` — service worker syntax
 - `JSON.parse(fs.readFileSync('manifest.webmanifest'))` — manifest valid
-- `make check` — all of the above + verifies inline CSS matches `css/styles.css`
-- `make sync-size` — syncs `css/styles.css` into the inline `<style>` in `index.html`
-- Manual smoke test in browser
+- `make check` — all of the above + verifies inline CSS **and** JS match the single-file `index.html` (a JS edit that never reaches the page is the silent-failure mode this guards)
+- `node tests/test_csv.mjs` — unit tests for the history CSV builder (extracted via markers, 7 assertions)
+- `make sync-size` / `make sync-js` — sync `css/styles.css` / `js/app.js` into `index.html`
+- Manual smoke test in browser (the CSV download and `?` overlay need a real browser)

@@ -1,9 +1,9 @@
-const CACHE_NAME = "calculahtml-v3";
+// Bump when the shell files below change, so clients pick up the new version
+// instead of serving a stale cache forever.
+const CACHE_NAME = "calculahtml-v4";
 const SHELL = [
   "./",
   "./index.html",
-  "./js/app.js",
-  "./css/styles.css",
   "./manifest.webmanifest",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
@@ -33,8 +33,21 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
   if (request.mode === "navigate") {
+    // Stale-while-revalidate: serve the cached shell immediately (this is what
+    // makes the offline-capable promise true), refresh it in the background.
+    // Previously this was fetch-first, so opening the installed app offline
+    // showed offline.html instead of the calculator itself.
     event.respondWith(
-      fetch(request).catch(() => caches.match("./offline.html"))
+      caches.match(request).then((cached) => {
+        const network = fetch(request)
+          .then((res) => {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            return res;
+          })
+          .catch(() => cached || caches.match("./offline.html"));
+        return cached || network;
+      })
     );
     return;
   }
