@@ -195,8 +195,17 @@
     else current = "-" + current;
   }
   function percent() {
-    const v = parseFloat(current) / 100;
-    current = formatNumber(v);
+    const v = parseFloat(current);
+    if (isNaN(v)) return;
+    // Standard calculator semantics: with a pending + or -, "x%" means
+    // "x% of the pending operand"; otherwise it is a plain /100.
+    let result;
+    if (previous !== "" && (operator === "+" || operator === "-")) {
+      result = (parseFloat(previous) || 0) * v / 100;
+    } else {
+      result = v / 100;
+    }
+    current = formatNumber(result);
     justEvaluated = false;
   }
 
@@ -225,8 +234,6 @@
     ceil: (x) => Math.ceil(x),
     round: (x) => Math.round(x),
     sign: (x) => Math.sign(x),
-    mod: (x) => x,
-    nCr: (x) => x,
     rand: () => Math.random(),
   };
   let angleMode = "deg";
@@ -268,15 +275,19 @@
       current = formatNumber(perm(n, r)); justEvaluated = true;
       pushHistory("P(" + n + "," + r + ")", current); updateDisplay(); return;
     }
+    if (name === "mod") {
+      const m = parseFloat(prompt("modulus:", "1"));
+      if (isNaN(m) || m === 0) return;
+      const r = x % m;
+      pushHistory("mod(" + x + "," + m + ")", formatNumber(r));
+      current = formatNumber(r); justEvaluated = true; updateDisplay(); return;
+    }
     if (name === "rand") {
       current = formatNumber(Math.random()); justEvaluated = false; updateDisplay(); return;
     }
     if (sci[name]) {
       let res;
       try { res = sci[name](x); } catch (e) { res = NaN; }
-      if (name === "mod") {
-        const m = parseFloat(prompt("modulus:", "1")); res = x % m;
-      }
       const exprStr = name + "(" + current + ")";
       pushHistory(exprStr, formatNumber(res));
       current = formatNumber(res);
@@ -310,7 +321,7 @@
       memoryList.innerHTML = '<div class="empty">Memory empty</div>';
       return;
     }
-    memoryList.innerHTML = `<div class="row"><span class="e">Memory</span><span class="r">${formatNumber(memory)}</span></div><div class="row" style="cursor:default"><span class="e" style="font-size:.7rem">Tap a value above? Use MR</span></div>`;
+    memoryList.innerHTML = `<div class="row"><span class="e">Memory</span><span class="r">${formatNumber(memory)}</span></div>`;
   }
   memoryList.addEventListener("click", () => { if (hasMemory) { memRecall(); } });
 
@@ -360,6 +371,24 @@
     }
   });
 
+  // v1.1.0: keyboard-shortcuts help modal (? toggles it)
+  const helpModal = document.getElementById("helpModal");
+  const helpClose = document.getElementById("helpClose");
+  function openHelp() {
+    if (!helpModal) return;
+    helpModal.classList.add("show");
+    helpModal.setAttribute("aria-hidden", "false");
+  }
+  function closeHelp() {
+    if (!helpModal) return;
+    helpModal.classList.remove("show");
+    helpModal.setAttribute("aria-hidden", "true");
+  }
+  if (helpClose) helpClose.addEventListener("click", closeHelp);
+  if (helpModal) helpModal.addEventListener("click", (e) => {
+    if (e.target === helpModal) closeHelp();
+  });
+
   // Settings modal
   const settingsModal = document.getElementById("settingsModal");
   const settingsBtn = document.getElementById("settingsBtn");
@@ -399,9 +428,14 @@
   });
 
   // Undo / redo
-  function snapshot() { return { current, previous, operator, justEvaluated, memory, hasMemory }; }
+  function snapshot() { return { current, previous, operator, justEvaluated, memory, hasMemory, history: history.slice() }; }
   function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 60) undoStack.shift(); redoStack.length = 0; }
-  function restoreSnap(s) { current = s.current; previous = s.previous; operator = s.operator; justEvaluated = s.justEvaluated; memory = s.memory; hasMemory = s.hasMemory; renderMemory(); updateDisplay(); }
+  function restoreSnap(s) {
+    current = s.current; previous = s.previous; operator = s.operator; justEvaluated = s.justEvaluated;
+    memory = s.memory; hasMemory = s.hasMemory;
+    if (s.history) { history.length = 0; history.push(...s.history); renderHistory(); }
+    renderMemory(); updateDisplay();
+  }
   function undo() {
     if (!undoStack.length) { showToast("Nothing to undo"); return; }
     redoStack.push(snapshot());
@@ -426,8 +460,25 @@
   }
 
   // Export history
-  const copyBtnWire = document.getElementById("copyBtn");
-  if (copyBtnWire) copyBtnWire.addEventListener("click", () => { copyResult(); });
+  const copyBtn = document.getElementById("copyBtn");
+  if (copyBtn) copyBtn.addEventListener("click", () => { copyResult(); });
+  // >>> CSV_BEGIN — pure, extracted by tests/test_csv.mjs (keep DOM-free)
+  // RFC 4180 CSV: quote everything that contains a comma, quote or newline,
+  // and double embedded quotes. Keeps spreadsheet imports sane for
+  // expressions like `1,2+3` or quoted strings from the expression tape.
+  function csvCell(value) {
+    const s = String(value);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function historyToCsv(entries) {
+    const rows = [["expression", "result"].map(csvCell).join(",")];
+    for (const h of entries) {
+      rows.push([csvCell(h.expr), csvCell(h.result)].join(","));
+    }
+    return rows.join("\n") + "\n";
+  }
+  // <<< CSV_END
+
   const exportHistoryBtn = document.getElementById("exportHistory");
   if (exportHistoryBtn) exportHistoryBtn.addEventListener("click", () => {
     if (!history.length) { showToast("No history"); return; }
@@ -435,6 +486,27 @@
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => showToast("History copied")).catch(() => showToast("Copy failed"));
     } else showToast("Clipboard unavailable");
+  });
+  // v1.1.0: download the tape as CSV for spreadsheets / record keeping.
+  const downloadHistoryBtn = document.getElementById("downloadHistory");
+  if (downloadHistoryBtn) downloadHistoryBtn.addEventListener("click", () => {
+    if (!history.length) { showToast("No history to export"); return; }
+    try {
+      const blob = new Blob([historyToCsv(history)], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "calcula-history.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Revoking immediately can cancel the in-flight download in Firefox;
+      // give the browser time to pick the blob up.
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      showToast("History exported");
+    } catch (e) {
+      showToast("Export failed");
+    }
   });
   const clearHistoryBtn = document.getElementById("clearHistory");
   if (clearHistoryBtn) clearHistoryBtn.addEventListener("click", () => { history.length = 0; renderHistory(); });
@@ -535,6 +607,19 @@
       return;
     }
     const k = e.key;
+    // ? toggles the shortcut help from anywhere (Shift+? on most layouts);
+    // Esc closes it first (v1.1.0)
+    if (k === "?") {
+      e.preventDefault();
+      if (helpModal && helpModal.classList.contains("show")) closeHelp();
+      else openHelp();
+      return;
+    }
+    if (k === "Escape" && helpModal && helpModal.classList.contains("show")) {
+      e.preventDefault();
+      closeHelp();
+      return;
+    }
     if (keyMap[k] !== undefined) {
       e.preventDefault();
       const v = keyMap[k];
@@ -547,11 +632,6 @@
       if (v === "percent") { pushUndo(); percent(); updateDisplay(); haptic(); return; }
       const opMap = {"+":"+","-":"-","*":"*","÷":"/","^":"^"};
       if (opMap[v]) { pushUndo(); inputOperator(opMap[v]); updateDisplay(); haptic(); return; }
-    }
-    // scientific shortcuts
-    const sciKeys = { s:"sin", c:"cos", t:"tan", l:"ln", r:"sqrt", q:"sq", i:"inv", f:"fact" };
-    if (sciKeys[k.toLowerCase()] && !e.shiftKey) {
-      // only if not typing? apply
     }
   });
 

@@ -773,6 +773,23 @@ body {
 }
 .greenit-card a { color: var(--accent); text-decoration: none; }
 .greenit-card a:hover { text-decoration: underline; }
+.help-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  text-align: left;
+  font-size: .8rem;
+  color: var(--fg);
+}
+.help-grid kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--fg);
+}
 .greenit-close {
   position: absolute;
   top: 6px; right: 10px;

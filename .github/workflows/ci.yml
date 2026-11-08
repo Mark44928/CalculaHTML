@@ -15,9 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Check JavaScript syntax
-        run: |
-          node --check js/app.js
-          node --check sw.js
-      - name: Validate web manifest
-        run: node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest', 'utf8'))"
+      - name: Check (+ inline CSS/JS sync verification)
+        run: make check
+      - name: CSV builder unit tests
+        run: node tests/test_csv.mjs
