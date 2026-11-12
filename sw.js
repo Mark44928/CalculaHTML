@@ -1,6 +1,6 @@
 // Bump when the shell files below change, so clients pick up the new version
 // instead of serving a stale cache forever.
-const CACHE_NAME = "calculahtml-v4";
+const CACHE_NAME = "calculahtml-v5";
 const SHELL = [
   "./",
   "./index.html",
