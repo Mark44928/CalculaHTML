@@ -42,6 +42,7 @@
   }
 
   function formatNumber(n) {
+    if (Number.isNaN(n) || !Number.isFinite(n)) return "Error";
     if (typeof n === "string") return n;
     if (!isFinite(n)) return String(n);
     let s = String(n);
@@ -76,7 +77,7 @@
       displayMem.textContent = "M";
       displayMem.classList.remove("inactive");
     } else {
-      displayMem.textContent = "M";
+      displayMem.textContent = "";
       displayMem.classList.add("inactive");
     }
     angleIndicator.textContent = angleMode.toUpperCase();
@@ -128,7 +129,7 @@
   });
 
   function inputDigit(d) {
-    if (justEvaluated) { current = d === "." ? "0." : d; justEvaluated = false; return; }
+    if (justEvaluated || current === "Error") { current = d === "." ? "0." : d; justEvaluated = false; return; }
     if (d === ".") {
       if (current.includes(".")) return;
       current += ".";
@@ -139,6 +140,7 @@
   }
 
   function inputOperator(op) {
+    if (current === "Error") { current = "0"; operator = null; justEvaluated = false; return; }
     if (operator && !justEvaluated) {
       evaluate(true);
     }
@@ -468,7 +470,7 @@
   // expressions like `1,2+3` or quoted strings from the expression tape.
   function csvCell(value) {
     const s = String(value);
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   }
   function historyToCsv(entries) {
     const rows = [["expression", "result"].map(csvCell).join(",")];
