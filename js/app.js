@@ -102,7 +102,7 @@
       return;
     }
     historyList.innerHTML = history.map((h, i) =>
-      `<div class="row" data-i="${i}" title="Click to reuse result"><span class="e">${escapeHtml(h.expr)}</span><span class="r">${escapeHtml(h.result)}</span><button class="hist-del" data-del="${i}" title="Delete">×</button></div>`
+      `<div class="row" data-i="${i}" title="Click to reuse result"><span class="e">${escapeHtml(h.expr)}</span><span class="r">${escapeHtml(h.result)}</span><button class="hist-del" data-del="${i}" title="Delete" aria-label="Delete history entry">×</button></div>`
     ).join("");
   }
   function escapeHtml(s) {
