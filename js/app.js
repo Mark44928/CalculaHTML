@@ -520,7 +520,7 @@
   // Button handling
   document.querySelectorAll(".btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      const mutating = btn.dataset.action && !["copy","history-clear","settings"].includes(btn.dataset.action);
+      const mutating = btn.dataset.action && !["copy","history-clear","settings","undo","redo"].includes(btn.dataset.action);
       // mem actions mutate
       if (mutating) pushUndo();
       handleAction(btn.dataset.action, btn);
