@@ -1227,13 +1227,24 @@ body {
 
   const settings = loadSettings();
 
+  // >>> SETTINGS_BEGIN — pure, extracted by tests/test_logic.mjs (keep DOM-free)
   function loadSettings() {
     const defaults = { sound: false, haptics: true, thousands: true, precision: 12 };
     try {
       const raw = localStorage.getItem("calc-settings");
-      return raw ? Object.assign(defaults, JSON.parse(raw)) : defaults;
-    } catch (e) { return defaults; }
+      if (!raw) return defaults;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return { ...defaults };
+      const precision = Number(parsed.precision);
+      return {
+        sound: typeof parsed.sound === "boolean" ? parsed.sound : defaults.sound,
+        haptics: typeof parsed.haptics === "boolean" ? parsed.haptics : defaults.haptics,
+        thousands: typeof parsed.thousands === "boolean" ? parsed.thousands : defaults.thousands,
+        precision: Number.isFinite(precision) ? Math.min(100, Math.max(1, Math.round(precision))) : defaults.precision,
+      };
+    } catch (e) { return { ...defaults }; }
   }
+  // <<< SETTINGS_END
   function saveSettings() {
     try { localStorage.setItem("calc-settings", JSON.stringify(settings)); } catch (e) {}
   }
@@ -1311,8 +1322,8 @@ body {
     btn.addEventListener("click", () => {
       const value = btn.querySelector("b")?.textContent || "";
       if (!value || value === "—") return;
-      if (navigator.clipboard) navigator.clipboard.writeText(value);
-      showToast("Copied " + btn.dataset.copy.toUpperCase());
+      if (navigator.clipboard) navigator.clipboard.writeText(value).then(() => showToast("Copied " + btn.dataset.copy.toUpperCase())).catch(() => showToast("Copy failed"));
+      else showToast("Clipboard unavailable");
     });
   });
 
@@ -1368,16 +1379,21 @@ body {
     if (current.length > 20) current = current.slice(0, 20);
   }
 
+  // >>> INPUTOP_BEGIN — pure, extracted by tests/test_logic.mjs (keep DOM-free)
   function inputOperator(op) {
     if (current === "Error") { current = "0"; operator = null; justEvaluated = false; return; }
     if (operator && !justEvaluated) {
       evaluate(true);
+      // A failed chain (e.g. division by zero) must not arm the new operator
+      // on top of the Error state, or every later "=" returns NaN.
+      if (current === "Error") { justEvaluated = true; return; }
     }
     previous = current;
     operator = op;
     justEvaluated = false;
     current = "0";
   }
+  // <<< INPUTOP_END
 
   function evaluate(silent) {
     if (operator === null) { justEvaluated = true; return; }
@@ -1545,9 +1561,11 @@ body {
   // Memory
   function memClear() { memory = 0; hasMemory = false; renderMemory(); updateDisplay(); showToast("MC"); }
   function memRecall() { current = formatNumber(memory); justEvaluated = false; updateDisplay(); showToast("MR"); }
-  function memAdd() { memory += parseFloat(current) || 0; hasMemory = true; renderMemory(); showToast("M+"); }
-  function memSub() { memory -= parseFloat(current) || 0; hasMemory = (memory !== 0); renderMemory(); showToast("M−"); }
-  function memStore() { memory = parseFloat(current) || 0; hasMemory = true; renderMemory(); showToast("MS"); }
+  // >>> MEM_BEGIN — pure, extracted by tests/test_logic.mjs (keep DOM-free)
+  function memAdd() { const v = parseFloat(current); memory += Number.isFinite(v) ? v : 0; hasMemory = true; renderMemory(); showToast("M+"); }
+  function memSub() { const v = parseFloat(current); memory -= Number.isFinite(v) ? v : 0; hasMemory = (memory !== 0); renderMemory(); showToast("M−"); }
+  function memStore() { const v = parseFloat(current); memory = Number.isFinite(v) ? v : 0; hasMemory = true; renderMemory(); showToast("MS"); }
+  // <<< MEM_END
   function renderMemory() {
     if (!hasMemory) {
       memoryList.innerHTML = '<div class="empty">Memory empty</div>';
@@ -1689,7 +1707,7 @@ body {
       for (;;) {
         if (eat("*")) { const r = unary(); const l = left; left = (x) => l(x) * r(x); }
         else if (eat("/")) { const r = unary(); const l = left; left = (x) => l(x) / r(x); }
-        else if (/[a-z0-9.(]/.test(peek())) { const r = unary(); const l = left; left = (x) => l(x) * r(x); }
+        else if (/[a-z0-9(]/.test(peek())) { const r = unary(); const l = left; left = (x) => l(x) * r(x); }
         else return left;
       }
     }
@@ -1829,7 +1847,7 @@ body {
     if (e.target && e.target.id === "setSound") { settings.sound = e.target.checked; saveSettings(); }
     if (e.target && e.target.id === "setHaptics") { settings.haptics = e.target.checked; saveSettings(); }
     if (e.target && e.target.id === "setThousands") { settings.thousands = e.target.checked; saveSettings(); updateDisplay(); }
-    if (e.target && e.target.id === "setPrecision") { settings.precision = parseInt(e.target.value, 10) || 12; saveSettings(); }
+    if (e.target && e.target.id === "setPrecision") { const p = parseInt(e.target.value, 10); settings.precision = Number.isFinite(p) ? Math.min(100, Math.max(1, p)) : 12; saveSettings(); updateDisplay(); }
   });
 
   // Undo / redo

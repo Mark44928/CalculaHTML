@@ -19,3 +19,5 @@ jobs:
         run: make check
       - name: CSV builder unit tests
         run: node tests/test_csv.mjs
+      - name: Logic regression tests
+        run: node tests/test_logic.mjs
