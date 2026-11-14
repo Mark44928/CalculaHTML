@@ -212,6 +212,7 @@
   function clearEntry() { current = "0"; }
   function backspace() {
     if (justEvaluated) return;
+    if (current === "Error") { current = "0"; return; }
     if (current.length <= 1) current = "0";
     else current = current.slice(0, -1);
     if (current === "-" || current === "") current = "0";
@@ -823,6 +824,21 @@
       e.preventDefault();
       if (isGraphOpen()) closeGraph(); else openGraph();
       return;
+    }
+    if (!isGraphOpen() && !(helpModal && helpModal.classList.contains("show"))) {
+      const sciKeys = {
+        s: "sin", c: "cos", t: "tan",
+        l: "ln", r: "sqrt", q: "sq", i: "inv", f: "fact",
+        p: "pi",
+      };
+      const sciName = sciKeys[k];
+      if (sciName) {
+        e.preventDefault();
+        pushUndo();
+        applySci(sciName);
+        haptic();
+        return;
+      }
     }
     if (k === "Escape" && isGraphOpen()) {
       e.preventDefault();

@@ -81,6 +81,9 @@ Switch themes from the dropdown or the color swatches. The choice is saved in `l
 | `Esc` | clear all |
 | `Delete` | clear entry |
 | `%` | percent |
+| `S` `C` `T` | sin / cos / tan |
+| `L` `R` `Q` `I` `F` | ln / √ / x² / 1÷x / n! |
+| `P` | π |
 | `G` | graph `y = f(x)` (self-contained parser) |
 
 ## Project structure
