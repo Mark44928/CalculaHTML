@@ -51,7 +51,7 @@ body {
   --surface-2: #242936;
   --fg: #e6e8ee;
   --fg-muted: #a8adb8;
-  --fg-dim: #7a808d;
+  --fg-dim: #8a909c;
   --accent: #7c9cff;
   --accent-2: #a78bfa;
   --accent-3: #f472b6;
@@ -103,7 +103,7 @@ body {
   --surface-2: #504945;
   --fg: #ebdbb2;
   --fg-muted: #d5c4a1;
-  --fg-dim: #a89984;
+  --fg-dim: #caba9b;
   --accent: #fabd2f;
   --accent-2: #fe8019;
   --accent-3: #fb4934;
@@ -128,8 +128,8 @@ body {
   --surface: #343f44;
   --surface-2: #3d484d;
   --fg: #d3c6aa;
-  --fg-muted: #9da9a0;
-  --fg-dim: #9da9a0;
+  --fg-muted: #b3b5a4;
+  --fg-dim: #b3b5a4;
   --accent: #a7c080;
   --accent-2: #83c092;
   --accent-3: #e67e80;
@@ -233,7 +233,7 @@ body {
   --surface-2: #45475a;
   --fg: #cdd6f4;
   --fg-muted: #bac2de;
-  --fg-dim: #9399b2;
+  --fg-dim: #b0b8d3;
   --accent: #cba6f7;
   --accent-2: #f38ba8;
   --accent-3: #fab387;
@@ -311,7 +311,7 @@ body {
   --surface-2: #403d52;
   --fg: #e0def4;
   --fg-muted: #c4a7e7;
-  --fg-dim: #908caa;
+  --fg-dim: #aca9c4;
   --accent: #ebbcba;
   --accent-2: #c4a7e7;
   --accent-3: #eb6f92;
@@ -337,7 +337,7 @@ body {
   --surface-2: #49483e;
   --fg: #f8f8f2;
   --fg-muted: #f8f8f2;
-  --fg-dim: #75715e;
+  --fg-dim: #bdbbaf;
   --accent: #a6e22e;
   --accent-2: #f92672;
   --accent-3: #fd971f;
@@ -362,8 +362,8 @@ body {
   --surface: #21262d;
   --surface-2: #30363d;
   --fg: #c9d1d9;
-  --fg-muted: #8b949e;
-  --fg-dim: #8b949e;
+  --fg-muted: #97a0aa;
+  --fg-dim: #97a0aa;
   --accent: #58a6ff;
   --accent-2: #bc8cff;
   --accent-3: #f78166;
@@ -389,7 +389,7 @@ body {
   --surface-2: #3a2e22;
   --fg: #e8d5a8;
   --fg-muted: #c9b380;
-  --fg-dim: #937e5e;
+  --fg-dim: #ac9874;
   --accent: #ffb347;
   --accent-2: #ff8c42;
   --accent-3: #e05a3a;
@@ -902,3 +902,32 @@ body {
   .display .result { font-size: 2rem; }
   .key-row { gap: 8px; }
 }
+
+/* ---------- base converter chips ---------- */
+.bases{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.base-chip{font:inherit;font-size:.7rem;letter-spacing:.08em;color:var(--fg-dim);background:transparent;border:1px solid var(--border);border-radius:9px;padding:4px 9px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;transition:border-color .15s,color .15s}
+.base-chip b{color:var(--fg);font-weight:600;letter-spacing:0;max-width:9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.base-chip:hover{border-color:var(--accent);color:var(--fg)}
+.base-chip:active{transform:translateY(1px)}
+
+/* ---------- v1.2.0: f(x) graph modal ---------- */
+.graph-card { width: min(780px, 96vw); }
+.graph-controls {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin: 10px 0 12px;
+}
+.graph-controls label { display: flex; align-items: center; gap: 6px; font-size: .8rem; opacity: .8; }
+.graph-controls input[type="text"],
+.graph-controls input[type="number"] {
+  background: var(--surface-2); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font: inherit; font-size: .85rem; min-width: 0;
+}
+.graph-controls input[type="text"] { flex: 1 1 220px; font-family: ui-monospace, monospace; }
+.graph-controls input[type="number"] { width: 80px; }
+.graph-controls input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#graphCanvas {
+  display: block; width: 100%; height: auto; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.graph-msg { min-height: 1.2em; margin: 8px 0 0; font-size: .8rem; color: var(--fg-dim); }
+.graph-msg.err { color: var(--danger); }

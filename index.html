@@ -69,7 +69,7 @@ body {
   --surface-2: #242936;
   --fg: #e6e8ee;
   --fg-muted: #a8adb8;
-  --fg-dim: #7a808d;
+  --fg-dim: #8a909c;
   --accent: #7c9cff;
   --accent-2: #a78bfa;
   --accent-3: #f472b6;
@@ -121,7 +121,7 @@ body {
   --surface-2: #504945;
   --fg: #ebdbb2;
   --fg-muted: #d5c4a1;
-  --fg-dim: #a89984;
+  --fg-dim: #caba9b;
   --accent: #fabd2f;
   --accent-2: #fe8019;
   --accent-3: #fb4934;
@@ -146,8 +146,8 @@ body {
   --surface: #343f44;
   --surface-2: #3d484d;
   --fg: #d3c6aa;
-  --fg-muted: #9da9a0;
-  --fg-dim: #9da9a0;
+  --fg-muted: #b3b5a4;
+  --fg-dim: #b3b5a4;
   --accent: #a7c080;
   --accent-2: #83c092;
   --accent-3: #e67e80;
@@ -251,7 +251,7 @@ body {
   --surface-2: #45475a;
   --fg: #cdd6f4;
   --fg-muted: #bac2de;
-  --fg-dim: #9399b2;
+  --fg-dim: #b0b8d3;
   --accent: #cba6f7;
   --accent-2: #f38ba8;
   --accent-3: #fab387;
@@ -329,7 +329,7 @@ body {
   --surface-2: #403d52;
   --fg: #e0def4;
   --fg-muted: #c4a7e7;
-  --fg-dim: #908caa;
+  --fg-dim: #aca9c4;
   --accent: #ebbcba;
   --accent-2: #c4a7e7;
   --accent-3: #eb6f92;
@@ -355,7 +355,7 @@ body {
   --surface-2: #49483e;
   --fg: #f8f8f2;
   --fg-muted: #f8f8f2;
-  --fg-dim: #75715e;
+  --fg-dim: #bdbbaf;
   --accent: #a6e22e;
   --accent-2: #f92672;
   --accent-3: #fd971f;
@@ -380,8 +380,8 @@ body {
   --surface: #21262d;
   --surface-2: #30363d;
   --fg: #c9d1d9;
-  --fg-muted: #8b949e;
-  --fg-dim: #8b949e;
+  --fg-muted: #97a0aa;
+  --fg-dim: #97a0aa;
   --accent: #58a6ff;
   --accent-2: #bc8cff;
   --accent-3: #f78166;
@@ -407,7 +407,7 @@ body {
   --surface-2: #3a2e22;
   --fg: #e8d5a8;
   --fg-muted: #c9b380;
-  --fg-dim: #937e5e;
+  --fg-dim: #ac9874;
   --accent: #ffb347;
   --accent-2: #ff8c42;
   --accent-3: #e05a3a;
@@ -921,6 +921,35 @@ body {
   .key-row { gap: 8px; }
 }
 
+/* ---------- base converter chips ---------- */
+.bases{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.base-chip{font:inherit;font-size:.7rem;letter-spacing:.08em;color:var(--fg-dim);background:transparent;border:1px solid var(--border);border-radius:9px;padding:4px 9px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;transition:border-color .15s,color .15s}
+.base-chip b{color:var(--fg);font-weight:600;letter-spacing:0;max-width:9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.base-chip:hover{border-color:var(--accent);color:var(--fg)}
+.base-chip:active{transform:translateY(1px)}
+
+/* ---------- v1.2.0: f(x) graph modal ---------- */
+.graph-card { width: min(780px, 96vw); }
+.graph-controls {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin: 10px 0 12px;
+}
+.graph-controls label { display: flex; align-items: center; gap: 6px; font-size: .8rem; opacity: .8; }
+.graph-controls input[type="text"],
+.graph-controls input[type="number"] {
+  background: var(--surface-2); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font: inherit; font-size: .85rem; min-width: 0;
+}
+.graph-controls input[type="text"] { flex: 1 1 220px; font-family: ui-monospace, monospace; }
+.graph-controls input[type="number"] { width: 80px; }
+.graph-controls input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#graphCanvas {
+  display: block; width: 100%; height: auto; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.graph-msg { min-height: 1.2em; margin: 8px 0 0; font-size: .8rem; color: var(--fg-dim); }
+.graph-msg.err { color: var(--danger); }
+
 </style>
 </head>
 <body>
@@ -985,7 +1014,13 @@ body {
         <div class="meta">
           <span class="mem inactive" id="memIndicator">M</span>
           <button id="copyBtn" class="meta-btn" data-action="copy" title="Copy result">Copy</button>
+          <button id="graphBtn" class="meta-btn" title="Graph y = f(x) (G)">Graph</button>
           <span id="angleIndicator">DEG</span>
+        </div>
+        <div class="bases" aria-label="Current value in other bases">
+          <button class="base-chip" data-copy="hex" title="Copy hexadecimal">HEX <b id="baseHex">—</b></button>
+          <button class="base-chip" data-copy="bin" title="Copy binary">BIN <b id="baseBin">—</b></button>
+          <button class="base-chip" data-copy="oct" title="Copy octal">OCT <b id="baseOct">—</b></button>
         </div>
       </div>
 
@@ -1143,9 +1178,24 @@ body {
           <div><kbd>%</kbd></div><div>Percent (of the pending operand for + and −)</div>
           <div><kbd>s</kbd> <kbd>c</kbd> <kbd>t</kbd></div><div>sin / cos / tan</div>
           <div><kbd>l</kbd> <kbd>r</kbd> <kbd>q</kbd> <kbd>i</kbd> <kbd>f</kbd></div><div>ln / root / square / 1&divide;x / factorial</div>
-          <div><kbd>p</kbd> · <kbd>?</kbd></div><div>π · this help</div>
+          <div><kbd>p</kbd> · <kbd>g</kbd> · <kbd>?</kbd></div><div>π · graph · this help</div>
         </div>
         <p style="margin-top:10px;font-size:.8rem;opacity:.75">Memory keys <strong>MC MR M+ M− MS</strong>, the angle toggle (<strong>DEG/RAD</strong>), the full history tape with CSV export and 15 themes live in the panels below the keypad. Everything works offline.</p>
+       </div>
+    </div>
+
+    <div class="greenit-modal" id="graphModal" aria-hidden="true">
+      <div class="greenit-card graph-card">
+        <button class="greenit-close" id="graphClose" aria-label="Close">×</button>
+        <p><strong>Graph</strong> <span style="opacity:.6">y = f(x) · x, + − * / ^, sin cos tan ln log sqrt abs exp…</span></p>
+        <div class="graph-controls">
+          <input id="graphExpr" type="text" inputmode="text" spellcheck="false" placeholder="e.g. sin(x) * x / 4" aria-label="Function of x">
+          <label>x from <input id="graphXmin" type="number" step="any" value="-10"></label>
+          <label>to <input id="graphXmax" type="number" step="any" value="10"></label>
+          <button class="meta-btn" id="graphDraw">Plot</button>
+        </div>
+        <canvas id="graphCanvas" width="720" height="380" aria-label="Plot of the entered function"></canvas>
+        <p class="graph-msg" id="graphMsg"></p>
       </div>
     </div>
   </div>
@@ -1240,7 +1290,32 @@ body {
   if (copyBtn) {
     copyBtn.disabled = (current === "Error");
   }
+    renderBases();
   }
+
+  function renderBases() {
+    const hex = document.getElementById("baseHex");
+    const bin = document.getElementById("baseBin");
+    const oct = document.getElementById("baseOct");
+    if (!hex || !bin || !oct) return;
+    const n = Number(current);
+    const usable = Number.isFinite(n) && Number.isInteger(n) && Math.abs(n) < 9007199254740992;
+    const asBase = (base) => usable
+      ? (n < 0 ? "-" : "") + Math.abs(n).toString(base).toUpperCase()
+      : "—";
+    hex.textContent = asBase(16);
+    bin.textContent = asBase(2);
+    oct.textContent = asBase(8);
+  }
+
+  document.querySelectorAll(".base-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const value = btn.querySelector("b")?.textContent || "";
+      if (!value || value === "—") return;
+      if (navigator.clipboard) navigator.clipboard.writeText(value);
+      showToast("Copied " + btn.dataset.copy.toUpperCase());
+    });
+  });
 
   function symbolFor(op) {
     return { "+": "+", "-": "−", "*": "×", "/": "÷", "^": "^", "%": "%" }[op] || op;
@@ -1546,6 +1621,179 @@ body {
     if (e.target === helpModal) closeHelp();
   });
 
+
+  // v1.2.0: graph modal — safe, dependency-free f(x) compiler + canvas plot
+  const graphBtn = document.getElementById("graphBtn");
+  const graphClose = document.getElementById("graphClose");
+  const graphModal = document.getElementById("graphModal");
+  const graphExpr = document.getElementById("graphExpr");
+  const graphXmin = document.getElementById("graphXmin");
+  const graphXmax = document.getElementById("graphXmax");
+  const graphDrawBtn = document.getElementById("graphDraw");
+  const graphCanvas = document.getElementById("graphCanvas");
+  const graphMsg = document.getElementById("graphMsg");
+
+  function compileExpression(src) {
+    const s = String(src).toLowerCase()
+      .replace(/\s+/g, "").replace(/−/g, "-").replace(/×/g, "*")
+      .replace(/÷/g, "/").replace(/π/g, "pi");
+    let i = 0;
+    const peek = () => s[i] || "";
+    const eat = (ch) => { if (s[i] === ch) { i++; return true; } return false; };
+    const deg = () => angleMode.toUpperCase() === "DEG";
+    const toRad = (v) => deg() ? v * Math.PI / 180 : v;
+    const fromRad = (v) => deg() ? v * 180 / Math.PI : v;
+    const fnTable = {
+      sin: (v) => Math.sin(toRad(v)), cos: (v) => Math.cos(toRad(v)),
+      tan: (v) => Math.tan(toRad(v)),
+      asin: (v) => fromRad(Math.asin(v)), acos: (v) => fromRad(Math.acos(v)),
+      atan: (v) => fromRad(Math.atan(v)),
+      sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
+      sqrt: Math.sqrt, cbrt: Math.cbrt, abs: Math.abs, exp: Math.exp,
+      ln: Math.log, log: Math.log10, log2: Math.log2,
+      floor: Math.floor, ceil: Math.ceil, round: Math.round, sign: Math.sign,
+    };
+    function atom() {
+      if (eat("(")) { const v = expr(); if (!eat(")")) throw new Error("missing )"); return v; }
+      const num = /^\d*\.?\d+(?:e[+-]?\d+)?/.exec(s.slice(i));
+      if (num) { i += num[0].length; const n = parseFloat(num[0]); return () => n; }
+      const id = /^[a-z][a-z0-9]*/.exec(s.slice(i));
+      if (id) {
+        const name = id[0]; i += name.length;
+        if (name === "x") return (x) => x;
+        if (name === "pi") return () => Math.PI;
+        if (name === "tau") return () => 2 * Math.PI;
+        if (name === "phi") return () => (1 + Math.sqrt(5)) / 2;
+        if (name === "e") return () => Math.E;
+        if (fnTable[name] && peek() === "(") {
+          eat("("); const arg = expr(); if (!eat(")")) throw new Error("missing ) after " + name);
+          const f = fnTable[name];
+          return (x) => f(arg(x));
+        }
+        throw new Error("unknown name: " + name);
+      }
+      throw new Error("unexpected '" + (peek() || "end") + "'");
+    }
+    function power() {
+      const base = atom();
+      if (eat("^")) { const exp = unary(); return (x) => Math.pow(base(x), exp(x)); }
+      return base;
+    }
+    function unary() {
+      if (eat("-")) { const v = unary(); return (x) => -v(x); }
+      if (eat("+")) return unary();
+      return power();
+    }
+    function term() {
+      let left = unary();
+      for (;;) {
+        if (eat("*")) { const r = unary(); const l = left; left = (x) => l(x) * r(x); }
+        else if (eat("/")) { const r = unary(); const l = left; left = (x) => l(x) / r(x); }
+        else if (/[a-z0-9.(]/.test(peek())) { const r = unary(); const l = left; left = (x) => l(x) * r(x); }
+        else return left;
+      }
+    }
+    function expr() {
+      let left = term();
+      for (;;) {
+        if (eat("+")) { const r = term(); const l = left; left = (x) => l(x) + r(x); }
+        else if (eat("-")) { const r = term(); const l = left; left = (x) => l(x) - r(x); }
+        else return left;
+      }
+    }
+    const fn = expr();
+    if (i < s.length) throw new Error("unexpected '" + s[i] + "'");
+    return fn;
+  }
+
+  function isGraphOpen() { return !!graphModal && graphModal.classList.contains("show"); }
+  function closeGraph() {
+    if (!graphModal) return;
+    graphModal.classList.remove("show");
+    graphModal.setAttribute("aria-hidden", "true");
+  }
+  function openGraph() {
+    if (!graphModal) return;
+    if (!graphExpr.value.trim()) graphExpr.value = "sin(x)";
+    graphModal.classList.add("show");
+    graphModal.setAttribute("aria-hidden", "false");
+    drawGraph();
+    graphExpr.focus();
+    graphExpr.select();
+  }
+
+  function drawGraph() {
+    if (!graphCanvas || !graphCanvas.getContext) return;
+    const fail = (m) => { if (graphMsg) { graphMsg.textContent = m; graphMsg.classList.add("err"); } };
+    if (graphMsg) graphMsg.classList.remove("err");
+    const src = (graphExpr.value || "").trim();
+    let fn;
+    try { fn = compileExpression(src || "sin(x)"); }
+    catch (err) { fail("Parse error: " + err.message); return; }
+    const x0 = parseFloat(graphXmin.value), x1 = parseFloat(graphXmax.value);
+    if (!Number.isFinite(x0) || !Number.isFinite(x1) || !(x1 > x0)) { fail("x max must be greater than x min"); return; }
+    if (x1 - x0 > 1e7) { fail("range too wide"); return; }
+
+    const cvs = graphCanvas, ctx2 = cvs.getContext("2d");
+    const cssW = Math.max(280, cvs.clientWidth || 720);
+    const cssH = Math.max(220, Math.min(420, Math.round(cssW * 0.52)));
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cvs.width = Math.round(cssW * dpr); cvs.height = Math.round(cssH * dpr);
+    ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx2.clearRect(0, 0, cssW, cssH);
+
+    const N = Math.max(240, Math.round(cssW * 2));
+    const pts = [];
+    let ymin = Infinity, ymax = -Infinity, any = false;
+    for (let k = 0; k < N; k++) {
+      const x = x0 + (x1 - x0) * k / (N - 1);
+      let y;
+      try { y = fn(x); } catch (e) { y = NaN; }
+      pts.push([x, y]);
+      if (Number.isFinite(y)) { ymin = Math.min(ymin, y); ymax = Math.max(ymax, y); any = true; }
+    }
+    if (!any) { fail("No real values of f(x) in that range"); return; }
+    if (!(ymax > ymin)) { const c = ymin; ymin = c - 1; ymax = c + 1; }
+    const pad = (ymax - ymin) * 0.08; ymin -= pad; ymax += pad;
+
+    const cs = getComputedStyle(document.documentElement);
+    const accent = (cs.getPropertyValue("--accent") || "#7c9cff").trim();
+    const dim = (cs.getPropertyValue("--fg-dim") || "#8a909c").trim();
+    const grid = (cs.getPropertyValue("--border") || "rgba(255,255,255,.1)").trim();
+    const X = (x) => (x - x0) / (x1 - x0) * cssW;
+    const Y = (y) => cssH - (y - ymin) / (ymax - ymin) * cssH;
+
+    ctx2.strokeStyle = grid; ctx2.lineWidth = 1;
+    for (let g = 0; g <= 8; g++) { const px = X(x0 + (x1 - x0) * g / 8); ctx2.beginPath(); ctx2.moveTo(px, 0); ctx2.lineTo(px, cssH); ctx2.stroke(); }
+    for (let g = 0; g <= 6; g++) { const py = Y(ymin + (ymax - ymin) * g / 6); ctx2.beginPath(); ctx2.moveTo(0, py); ctx2.lineTo(cssW, py); ctx2.stroke(); }
+    ctx2.strokeStyle = dim; ctx2.lineWidth = 1.25;
+    if (ymin < 0 && ymax > 0) { const py = Y(0); ctx2.beginPath(); ctx2.moveTo(0, py); ctx2.lineTo(cssW, py); ctx2.stroke(); }
+    if (x0 < 0 && x1 > 0) { const px = X(0); ctx2.beginPath(); ctx2.moveTo(px, 0); ctx2.lineTo(px, cssH); ctx2.stroke(); }
+
+    ctx2.strokeStyle = accent; ctx2.lineWidth = 2; ctx2.lineJoin = "round"; ctx2.lineCap = "round";
+    ctx2.beginPath();
+    let started = false;
+    for (const [x, y] of pts) {
+      if (!Number.isFinite(y)) { started = false; continue; }
+      if (!started) { ctx2.moveTo(X(x), Y(y)); started = true; }
+      else ctx2.lineTo(X(x), Y(y));
+    }
+    ctx2.stroke();
+
+    ctx2.fillStyle = dim; ctx2.font = "11px ui-monospace, monospace";
+    ctx2.textAlign = "left";
+    ctx2.fillText("y " + ymin.toFixed(2) + " … " + ymax.toFixed(2), 8, 14);
+    ctx2.textAlign = "right";
+    ctx2.fillText("x " + x0 + " … " + x1, cssW - 8, cssH - 8);
+    if (graphMsg) graphMsg.textContent = "f(x) = " + (src || "sin(x)");
+  }
+
+  if (graphClose) graphClose.addEventListener("click", closeGraph);
+  if (graphModal) graphModal.addEventListener("click", (e) => { if (e.target === graphModal) closeGraph(); });
+  if (graphBtn) graphBtn.addEventListener("click", openGraph);
+  if (graphDrawBtn) graphDrawBtn.addEventListener("click", drawGraph);
+  if (graphExpr) graphExpr.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); drawGraph(); } });
+
   // Settings modal
   const settingsModal = document.getElementById("settingsModal");
   const settingsBtn = document.getElementById("settingsBtn");
@@ -1764,12 +2012,26 @@ body {
       return;
     }
     const k = e.key;
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+      if (k === "Escape" && isGraphOpen()) { e.preventDefault(); closeGraph(); }
+      return;
+    }
     // ? toggles the shortcut help from anywhere (Shift+? on most layouts);
     // Esc closes it first (v1.1.0)
     if (k === "?") {
       e.preventDefault();
       if (helpModal && helpModal.classList.contains("show")) closeHelp();
       else openHelp();
+      return;
+    }
+    if (k === "g" || k === "G") {
+      e.preventDefault();
+      if (isGraphOpen()) closeGraph(); else openGraph();
+      return;
+    }
+    if (k === "Escape" && isGraphOpen()) {
+      e.preventDefault();
+      closeGraph();
       return;
     }
     if (k === "Escape" && helpModal && helpModal.classList.contains("show")) {

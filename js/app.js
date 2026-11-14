@@ -85,7 +85,32 @@
   if (copyBtn) {
     copyBtn.disabled = (current === "Error");
   }
+    renderBases();
   }
+
+  function renderBases() {
+    const hex = document.getElementById("baseHex");
+    const bin = document.getElementById("baseBin");
+    const oct = document.getElementById("baseOct");
+    if (!hex || !bin || !oct) return;
+    const n = Number(current);
+    const usable = Number.isFinite(n) && Number.isInteger(n) && Math.abs(n) < 9007199254740992;
+    const asBase = (base) => usable
+      ? (n < 0 ? "-" : "") + Math.abs(n).toString(base).toUpperCase()
+      : "—";
+    hex.textContent = asBase(16);
+    bin.textContent = asBase(2);
+    oct.textContent = asBase(8);
+  }
+
+  document.querySelectorAll(".base-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const value = btn.querySelector("b")?.textContent || "";
+      if (!value || value === "—") return;
+      if (navigator.clipboard) navigator.clipboard.writeText(value);
+      showToast("Copied " + btn.dataset.copy.toUpperCase());
+    });
+  });
 
   function symbolFor(op) {
     return { "+": "+", "-": "−", "*": "×", "/": "÷", "^": "^", "%": "%" }[op] || op;
@@ -391,6 +416,179 @@
     if (e.target === helpModal) closeHelp();
   });
 
+
+  // v1.2.0: graph modal — safe, dependency-free f(x) compiler + canvas plot
+  const graphBtn = document.getElementById("graphBtn");
+  const graphClose = document.getElementById("graphClose");
+  const graphModal = document.getElementById("graphModal");
+  const graphExpr = document.getElementById("graphExpr");
+  const graphXmin = document.getElementById("graphXmin");
+  const graphXmax = document.getElementById("graphXmax");
+  const graphDrawBtn = document.getElementById("graphDraw");
+  const graphCanvas = document.getElementById("graphCanvas");
+  const graphMsg = document.getElementById("graphMsg");
+
+  function compileExpression(src) {
+    const s = String(src).toLowerCase()
+      .replace(/\s+/g, "").replace(/−/g, "-").replace(/×/g, "*")
+      .replace(/÷/g, "/").replace(/π/g, "pi");
+    let i = 0;
+    const peek = () => s[i] || "";
+    const eat = (ch) => { if (s[i] === ch) { i++; return true; } return false; };
+    const deg = () => angleMode.toUpperCase() === "DEG";
+    const toRad = (v) => deg() ? v * Math.PI / 180 : v;
+    const fromRad = (v) => deg() ? v * 180 / Math.PI : v;
+    const fnTable = {
+      sin: (v) => Math.sin(toRad(v)), cos: (v) => Math.cos(toRad(v)),
+      tan: (v) => Math.tan(toRad(v)),
+      asin: (v) => fromRad(Math.asin(v)), acos: (v) => fromRad(Math.acos(v)),
+      atan: (v) => fromRad(Math.atan(v)),
+      sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
+      sqrt: Math.sqrt, cbrt: Math.cbrt, abs: Math.abs, exp: Math.exp,
+      ln: Math.log, log: Math.log10, log2: Math.log2,
+      floor: Math.floor, ceil: Math.ceil, round: Math.round, sign: Math.sign,
+    };
+    function atom() {
+      if (eat("(")) { const v = expr(); if (!eat(")")) throw new Error("missing )"); return v; }
+      const num = /^\d*\.?\d+(?:e[+-]?\d+)?/.exec(s.slice(i));
+      if (num) { i += num[0].length; const n = parseFloat(num[0]); return () => n; }
+      const id = /^[a-z][a-z0-9]*/.exec(s.slice(i));
+      if (id) {
+        const name = id[0]; i += name.length;
+        if (name === "x") return (x) => x;
+        if (name === "pi") return () => Math.PI;
+        if (name === "tau") return () => 2 * Math.PI;
+        if (name === "phi") return () => (1 + Math.sqrt(5)) / 2;
+        if (name === "e") return () => Math.E;
+        if (fnTable[name] && peek() === "(") {
+          eat("("); const arg = expr(); if (!eat(")")) throw new Error("missing ) after " + name);
+          const f = fnTable[name];
+          return (x) => f(arg(x));
+        }
+        throw new Error("unknown name: " + name);
+      }
+      throw new Error("unexpected '" + (peek() || "end") + "'");
+    }
+    function power() {
+      const base = atom();
+      if (eat("^")) { const exp = unary(); return (x) => Math.pow(base(x), exp(x)); }
+      return base;
+    }
+    function unary() {
+      if (eat("-")) { const v = unary(); return (x) => -v(x); }
+      if (eat("+")) return unary();
+      return power();
+    }
+    function term() {
+      let left = unary();
+      for (;;) {
+        if (eat("*")) { const r = unary(); const l = left; left = (x) => l(x) * r(x); }
+        else if (eat("/")) { const r = unary(); const l = left; left = (x) => l(x) / r(x); }
+        else if (/[a-z0-9.(]/.test(peek())) { const r = unary(); const l = left; left = (x) => l(x) * r(x); }
+        else return left;
+      }
+    }
+    function expr() {
+      let left = term();
+      for (;;) {
+        if (eat("+")) { const r = term(); const l = left; left = (x) => l(x) + r(x); }
+        else if (eat("-")) { const r = term(); const l = left; left = (x) => l(x) - r(x); }
+        else return left;
+      }
+    }
+    const fn = expr();
+    if (i < s.length) throw new Error("unexpected '" + s[i] + "'");
+    return fn;
+  }
+
+  function isGraphOpen() { return !!graphModal && graphModal.classList.contains("show"); }
+  function closeGraph() {
+    if (!graphModal) return;
+    graphModal.classList.remove("show");
+    graphModal.setAttribute("aria-hidden", "true");
+  }
+  function openGraph() {
+    if (!graphModal) return;
+    if (!graphExpr.value.trim()) graphExpr.value = "sin(x)";
+    graphModal.classList.add("show");
+    graphModal.setAttribute("aria-hidden", "false");
+    drawGraph();
+    graphExpr.focus();
+    graphExpr.select();
+  }
+
+  function drawGraph() {
+    if (!graphCanvas || !graphCanvas.getContext) return;
+    const fail = (m) => { if (graphMsg) { graphMsg.textContent = m; graphMsg.classList.add("err"); } };
+    if (graphMsg) graphMsg.classList.remove("err");
+    const src = (graphExpr.value || "").trim();
+    let fn;
+    try { fn = compileExpression(src || "sin(x)"); }
+    catch (err) { fail("Parse error: " + err.message); return; }
+    const x0 = parseFloat(graphXmin.value), x1 = parseFloat(graphXmax.value);
+    if (!Number.isFinite(x0) || !Number.isFinite(x1) || !(x1 > x0)) { fail("x max must be greater than x min"); return; }
+    if (x1 - x0 > 1e7) { fail("range too wide"); return; }
+
+    const cvs = graphCanvas, ctx2 = cvs.getContext("2d");
+    const cssW = Math.max(280, cvs.clientWidth || 720);
+    const cssH = Math.max(220, Math.min(420, Math.round(cssW * 0.52)));
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cvs.width = Math.round(cssW * dpr); cvs.height = Math.round(cssH * dpr);
+    ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx2.clearRect(0, 0, cssW, cssH);
+
+    const N = Math.max(240, Math.round(cssW * 2));
+    const pts = [];
+    let ymin = Infinity, ymax = -Infinity, any = false;
+    for (let k = 0; k < N; k++) {
+      const x = x0 + (x1 - x0) * k / (N - 1);
+      let y;
+      try { y = fn(x); } catch (e) { y = NaN; }
+      pts.push([x, y]);
+      if (Number.isFinite(y)) { ymin = Math.min(ymin, y); ymax = Math.max(ymax, y); any = true; }
+    }
+    if (!any) { fail("No real values of f(x) in that range"); return; }
+    if (!(ymax > ymin)) { const c = ymin; ymin = c - 1; ymax = c + 1; }
+    const pad = (ymax - ymin) * 0.08; ymin -= pad; ymax += pad;
+
+    const cs = getComputedStyle(document.documentElement);
+    const accent = (cs.getPropertyValue("--accent") || "#7c9cff").trim();
+    const dim = (cs.getPropertyValue("--fg-dim") || "#8a909c").trim();
+    const grid = (cs.getPropertyValue("--border") || "rgba(255,255,255,.1)").trim();
+    const X = (x) => (x - x0) / (x1 - x0) * cssW;
+    const Y = (y) => cssH - (y - ymin) / (ymax - ymin) * cssH;
+
+    ctx2.strokeStyle = grid; ctx2.lineWidth = 1;
+    for (let g = 0; g <= 8; g++) { const px = X(x0 + (x1 - x0) * g / 8); ctx2.beginPath(); ctx2.moveTo(px, 0); ctx2.lineTo(px, cssH); ctx2.stroke(); }
+    for (let g = 0; g <= 6; g++) { const py = Y(ymin + (ymax - ymin) * g / 6); ctx2.beginPath(); ctx2.moveTo(0, py); ctx2.lineTo(cssW, py); ctx2.stroke(); }
+    ctx2.strokeStyle = dim; ctx2.lineWidth = 1.25;
+    if (ymin < 0 && ymax > 0) { const py = Y(0); ctx2.beginPath(); ctx2.moveTo(0, py); ctx2.lineTo(cssW, py); ctx2.stroke(); }
+    if (x0 < 0 && x1 > 0) { const px = X(0); ctx2.beginPath(); ctx2.moveTo(px, 0); ctx2.lineTo(px, cssH); ctx2.stroke(); }
+
+    ctx2.strokeStyle = accent; ctx2.lineWidth = 2; ctx2.lineJoin = "round"; ctx2.lineCap = "round";
+    ctx2.beginPath();
+    let started = false;
+    for (const [x, y] of pts) {
+      if (!Number.isFinite(y)) { started = false; continue; }
+      if (!started) { ctx2.moveTo(X(x), Y(y)); started = true; }
+      else ctx2.lineTo(X(x), Y(y));
+    }
+    ctx2.stroke();
+
+    ctx2.fillStyle = dim; ctx2.font = "11px ui-monospace, monospace";
+    ctx2.textAlign = "left";
+    ctx2.fillText("y " + ymin.toFixed(2) + " … " + ymax.toFixed(2), 8, 14);
+    ctx2.textAlign = "right";
+    ctx2.fillText("x " + x0 + " … " + x1, cssW - 8, cssH - 8);
+    if (graphMsg) graphMsg.textContent = "f(x) = " + (src || "sin(x)");
+  }
+
+  if (graphClose) graphClose.addEventListener("click", closeGraph);
+  if (graphModal) graphModal.addEventListener("click", (e) => { if (e.target === graphModal) closeGraph(); });
+  if (graphBtn) graphBtn.addEventListener("click", openGraph);
+  if (graphDrawBtn) graphDrawBtn.addEventListener("click", drawGraph);
+  if (graphExpr) graphExpr.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); drawGraph(); } });
+
   // Settings modal
   const settingsModal = document.getElementById("settingsModal");
   const settingsBtn = document.getElementById("settingsBtn");
@@ -609,12 +807,26 @@
       return;
     }
     const k = e.key;
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+      if (k === "Escape" && isGraphOpen()) { e.preventDefault(); closeGraph(); }
+      return;
+    }
     // ? toggles the shortcut help from anywhere (Shift+? on most layouts);
     // Esc closes it first (v1.1.0)
     if (k === "?") {
       e.preventDefault();
       if (helpModal && helpModal.classList.contains("show")) closeHelp();
       else openHelp();
+      return;
+    }
+    if (k === "g" || k === "G") {
+      e.preventDefault();
+      if (isGraphOpen()) closeGraph(); else openGraph();
+      return;
+    }
+    if (k === "Escape" && isGraphOpen()) {
+      e.preventDefault();
+      closeGraph();
       return;
     }
     if (k === "Escape" && helpModal && helpModal.classList.contains("show")) {
