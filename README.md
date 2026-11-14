@@ -25,6 +25,10 @@ A feature-rich, responsive calculator that runs entirely in the browser: 15 them
   (proper RFC 4180 quoting) for spreadsheets and record keeping
 - 15 themes + System (auto light/dark): Dark, Light, Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin Mocha, One Dark, Solarized Dark, Rose Pine, Monokai, GitHub Dark, Old Dark, Greenit
 - Keyboard support, copy result, angle mode (DEG/RAD)
+- **Function graph** — press <kbd>G</kbd> for a canvas plot of `y = f(x)`:
+  `x`, `+ − * / ^`, `sin cos tan ln log log2 sqrt abs exp` and constants
+  `pi tau phi e`, implicit multiplication (`2x`, `3sin(x)`), custom x-range,
+  live redraw, and a self-contained parser (no `eval`)
 - **Keyboard shortcut overlay** — press <kbd>?</kbd> any time to see every
   shortcut (operators, scientific keys, percent semantics, Esc to close)
 - Responsive layout, accessible controls, reduced-motion friendly
@@ -77,6 +81,7 @@ Switch themes from the dropdown or the color swatches. The choice is saved in `l
 | `Esc` | clear all |
 | `Delete` | clear entry |
 | `%` | percent |
+| `G` | graph `y = f(x)` (self-contained parser) |
 
 ## Project structure
 
