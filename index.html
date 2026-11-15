@@ -1192,6 +1192,7 @@ body {
           <label>x from <input id="graphXmin" type="number" step="any" value="-10"></label>
           <label>to <input id="graphXmax" type="number" step="any" value="10"></label>
           <button class="meta-btn" id="graphDraw">Plot</button>
+          <button class="meta-btn" id="graphDownload" title="Download the plot as PNG">PNG</button>
         </div>
         <canvas id="graphCanvas" width="720" height="380" aria-label="Plot of the entered function"></canvas>
         <p class="graph-msg" id="graphMsg"></p>
@@ -1648,6 +1649,7 @@ body {
   const graphXmin = document.getElementById("graphXmin");
   const graphXmax = document.getElementById("graphXmax");
   const graphDrawBtn = document.getElementById("graphDraw");
+  const graphDownloadBtn = document.getElementById("graphDownload");
   const graphCanvas = document.getElementById("graphCanvas");
   const graphMsg = document.getElementById("graphMsg");
 
@@ -1741,7 +1743,7 @@ body {
   }
 
   function drawGraph() {
-    if (!graphCanvas || !graphCanvas.getContext) return;
+    if (!graphCanvas || !graphCanvas.getContext) return false;
     const fail = (m) => { if (graphMsg) { graphMsg.textContent = m; graphMsg.classList.add("err"); } };
     if (graphMsg) graphMsg.classList.remove("err");
     const src = (graphExpr.value || "").trim() || "sin(x)";
@@ -1749,11 +1751,11 @@ body {
     const fns = [];
     for (const part of parts) {
       try { fns.push({ src: part, fn: compileExpression(part) }); }
-      catch (err) { fail("Parse error in “" + part + "”: " + err.message); return; }
+      catch (err) { fail("Parse error in “" + part + "”: " + err.message); return false; }
     }
     const x0 = parseFloat(graphXmin.value), x1 = parseFloat(graphXmax.value);
-    if (!Number.isFinite(x0) || !Number.isFinite(x1) || !(x1 > x0)) { fail("x max must be greater than x min"); return; }
-    if (x1 - x0 > 1e7) { fail("range too wide"); return; }
+    if (!Number.isFinite(x0) || !Number.isFinite(x1) || !(x1 > x0)) { fail("x max must be greater than x min"); return false; }
+    if (x1 - x0 > 1e7) { fail("range too wide"); return false; }
 
     const cvs = graphCanvas, ctx2 = cvs.getContext("2d");
     const cssW = Math.max(280, cvs.clientWidth || 720);
@@ -1775,7 +1777,7 @@ body {
         if (Number.isFinite(y)) { ymin = Math.min(ymin, y); ymax = Math.max(ymax, y); any = true; }
       }
     }
-    if (!any) { fail("No real values of f(x) in that range"); return; }
+    if (!any) { fail("No real values of f(x) in that range"); return false; }
     if (!(ymax > ymin)) { const c = ymin; ymin = c - 1; ymax = c + 1; }
     const pad = (ymax - ymin) * 0.08; ymin -= pad; ymax += pad;
 
@@ -1787,9 +1789,12 @@ body {
     ];
     const dim = (cs.getPropertyValue("--fg-dim") || "#8a909c").trim();
     const grid = (cs.getPropertyValue("--border") || "rgba(255,255,255,.1)").trim();
+    const bg = (cs.getPropertyValue("--bg") || "#ffffff").trim();
     const X = (x) => (x - x0) / (x1 - x0) * cssW;
     const Y = (y) => cssH - (y - ymin) / (ymax - ymin) * cssH;
 
+    ctx2.fillStyle = bg;
+    ctx2.fillRect(0, 0, cssW, cssH);
     ctx2.strokeStyle = grid; ctx2.lineWidth = 1;
     for (let g = 0; g <= 8; g++) { const px = X(x0 + (x1 - x0) * g / 8); ctx2.beginPath(); ctx2.moveTo(px, 0); ctx2.lineTo(px, cssH); ctx2.stroke(); }
     for (let g = 0; g <= 6; g++) { const py = Y(ymin + (ymax - ymin) * g / 6); ctx2.beginPath(); ctx2.moveTo(0, py); ctx2.lineTo(cssW, py); ctx2.stroke(); }
@@ -1817,12 +1822,27 @@ body {
     ctx2.textAlign = "right";
     ctx2.fillText("x " + x0 + " … " + x1, cssW - 8, cssH - 8);
     if (graphMsg) graphMsg.textContent = fns.map((f, i) => "f" + (i + 1) + "(x) = " + f.src).join("   ·   ");
+    return true;
   }
 
   if (graphClose) graphClose.addEventListener("click", closeGraph);
   if (graphModal) graphModal.addEventListener("click", (e) => { if (e.target === graphModal) closeGraph(); });
   if (graphBtn) graphBtn.addEventListener("click", openGraph);
   if (graphDrawBtn) graphDrawBtn.addEventListener("click", drawGraph);
+  if (graphDownloadBtn) graphDownloadBtn.addEventListener("click", () => {
+    if (!graphCanvas || !graphCanvas.getContext) return;
+    if (!drawGraph()) return;
+    try {
+      const link = document.createElement("a");
+      link.href = graphCanvas.toDataURL("image/png");
+      link.download = "calcula-graph.png";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (e) {
+      if (graphMsg) { graphMsg.textContent = "Could not export the graph"; graphMsg.classList.add("err"); }
+    }
+  });
   if (graphExpr) graphExpr.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); drawGraph(); } });
 
   // Settings modal

@@ -28,7 +28,8 @@ A feature-rich, responsive calculator that runs entirely in the browser: 15 them
 - **Function graph** — press <kbd>G</kbd> for a canvas plot of `y = f(x)`:
   `x`, `+ − * / ^`, `sin cos tan ln log log2 sqrt abs exp` and constants
   `pi tau phi e`, implicit multiplication (`2x`, `3sin(x)`), custom x-range,
-  live redraw, and a self-contained parser (no `eval`)
+  live redraw, a self-contained parser (no `eval`), and one-tap **PNG export**
+  of the current plot
 - **Keyboard shortcut overlay** — press <kbd>?</kbd> any time to see every
   shortcut (operators, scientific keys, percent semantics, Esc to close)
 - Responsive layout, accessible controls, reduced-motion friendly
