@@ -23,6 +23,8 @@ A feature-rich, responsive calculator that runs entirely in the browser: 15 them
 - Memory: `MC MR M+ M− MS`
 - History tape with up to 100 entries — copy it, or **download it as CSV**
   (proper RFC 4180 quoting) for spreadsheets and record keeping
+- **Share links** — copy a URL that restores the latest calculation and result
+  when opened (expression and value live in the URL fragment, no backend)
 - 15 themes + System (auto light/dark): Dark, Light, Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin Mocha, One Dark, Solarized Dark, Rose Pine, Monokai, GitHub Dark, Old Dark, Greenit
 - Keyboard support, copy result, angle mode (DEG/RAD)
 - **Function graph** — press <kbd>G</kbd> for a canvas plot of `y = f(x)`:

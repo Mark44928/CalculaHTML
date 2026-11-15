@@ -164,6 +164,19 @@
     showToast("Result loaded");
   });
 
+  function restoreSharedCalculation() {
+    const shared = parseShareHash(location.hash);
+    if (!shared) return;
+    previous = shared.expr;
+    current = shared.result || "0";
+    operator = null;
+    justEvaluated = true;
+    if (shared.expr && shared.result) pushHistory(shared.expr, shared.result);
+    updateDisplay();
+    if (shared.expr) displayExpr.textContent = shared.expr;
+    showToast("Shared calculation loaded");
+  }
+
   function inputDigit(d) {
     if (justEvaluated || current === "Error") { current = d === "." ? "0." : d; justEvaluated = false; return; }
     if (d === ".") {
@@ -713,6 +726,36 @@
   // Export history
   const copyBtn = document.getElementById("copyBtn");
   if (copyBtn) copyBtn.addEventListener("click", () => { copyResult(); });
+  const shareBtn = document.getElementById("shareBtn");
+  if (shareBtn) shareBtn.addEventListener("click", () => {
+    const latest = history[0];
+    const expr = latest ? latest.expr : "";
+    const result = latest ? latest.result : current;
+    if (!expr && (!result || result === "0" || result === "Error")) { showToast("Nothing to share"); return; }
+    const url = location.origin + location.pathname + location.search + makeShareHash(expr, result);
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => showToast("Share link copied")).catch(() => showToast("Copy failed"));
+    else showToast("Clipboard unavailable");
+  });
+  // >>> SHARE_BEGIN — pure, extracted by tests/test_share.mjs (keep DOM-free)
+  function makeShareHash(expr, result) {
+    const payload = {};
+    if (expr) payload.e = String(expr);
+    if (result !== undefined && result !== null && result !== "") payload.r = String(result);
+    return "#q=" + encodeURIComponent(JSON.stringify(payload));
+  }
+  function parseShareHash(hash) {
+    const raw = String(hash || "").replace(/^#/, "");
+    if (!raw.startsWith("q=") || raw.length > 4000) return null;
+    let payload;
+    try { payload = JSON.parse(decodeURIComponent(raw.slice(2))); } catch (e) { return null; }
+    if (!payload || typeof payload !== "object") return null;
+    const expr = typeof payload.e === "string" ? payload.e : "";
+    const result = typeof payload.r === "string" ? payload.r : "";
+    if (!expr && !result) return null;
+    return { expr, result };
+  }
+  // <<< SHARE_END
+
   // >>> CSV_BEGIN — pure, extracted by tests/test_csv.mjs (keep DOM-free)
   // RFC 4180 CSV: quote everything that contains a comma, quote or newline,
   // and double embedded quotes. Keeps spreadsheet imports sane for
@@ -965,6 +1008,7 @@
   angleIndicator.textContent = angleMode.toUpperCase();
   renderHistory();
   renderMemory();
+  restoreSharedCalculation();
   updateDisplay();
   syncSettingsUI();
 })();
