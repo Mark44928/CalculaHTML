@@ -540,10 +540,13 @@
     if (!graphCanvas || !graphCanvas.getContext) return;
     const fail = (m) => { if (graphMsg) { graphMsg.textContent = m; graphMsg.classList.add("err"); } };
     if (graphMsg) graphMsg.classList.remove("err");
-    const src = (graphExpr.value || "").trim();
-    let fn;
-    try { fn = compileExpression(src || "sin(x)"); }
-    catch (err) { fail("Parse error: " + err.message); return; }
+    const src = (graphExpr.value || "").trim() || "sin(x)";
+    const parts = src.split(",").map((p) => p.trim()).filter(Boolean).slice(0, 3);
+    const fns = [];
+    for (const part of parts) {
+      try { fns.push({ src: part, fn: compileExpression(part) }); }
+      catch (err) { fail("Parse error in “" + part + "”: " + err.message); return; }
+    }
     const x0 = parseFloat(graphXmin.value), x1 = parseFloat(graphXmax.value);
     if (!Number.isFinite(x0) || !Number.isFinite(x1) || !(x1 > x0)) { fail("x max must be greater than x min"); return; }
     if (x1 - x0 > 1e7) { fail("range too wide"); return; }
@@ -557,21 +560,27 @@
     ctx2.clearRect(0, 0, cssW, cssH);
 
     const N = Math.max(240, Math.round(cssW * 2));
-    const pts = [];
+    const series = fns.map(() => []);
     let ymin = Infinity, ymax = -Infinity, any = false;
-    for (let k = 0; k < N; k++) {
-      const x = x0 + (x1 - x0) * k / (N - 1);
-      let y;
-      try { y = fn(x); } catch (e) { y = NaN; }
-      pts.push([x, y]);
-      if (Number.isFinite(y)) { ymin = Math.min(ymin, y); ymax = Math.max(ymax, y); any = true; }
+    for (let fi = 0; fi < fns.length; fi++) {
+      for (let k = 0; k < N; k++) {
+        const x = x0 + (x1 - x0) * k / (N - 1);
+        let y;
+        try { y = fns[fi].fn(x); } catch (e) { y = NaN; }
+        series[fi].push([x, y]);
+        if (Number.isFinite(y)) { ymin = Math.min(ymin, y); ymax = Math.max(ymax, y); any = true; }
+      }
     }
     if (!any) { fail("No real values of f(x) in that range"); return; }
     if (!(ymax > ymin)) { const c = ymin; ymin = c - 1; ymax = c + 1; }
     const pad = (ymax - ymin) * 0.08; ymin -= pad; ymax += pad;
 
     const cs = getComputedStyle(document.documentElement);
-    const accent = (cs.getPropertyValue("--accent") || "#7c9cff").trim();
+    const colors = [
+      (cs.getPropertyValue("--accent") || "#7c9cff").trim(),
+      (cs.getPropertyValue("--accent-2") || "#a78bfa").trim(),
+      (cs.getPropertyValue("--accent-3") || "#f472b6").trim(),
+    ];
     const dim = (cs.getPropertyValue("--fg-dim") || "#8a909c").trim();
     const grid = (cs.getPropertyValue("--border") || "rgba(255,255,255,.1)").trim();
     const X = (x) => (x - x0) / (x1 - x0) * cssW;
@@ -584,22 +593,26 @@
     if (ymin < 0 && ymax > 0) { const py = Y(0); ctx2.beginPath(); ctx2.moveTo(0, py); ctx2.lineTo(cssW, py); ctx2.stroke(); }
     if (x0 < 0 && x1 > 0) { const px = X(0); ctx2.beginPath(); ctx2.moveTo(px, 0); ctx2.lineTo(px, cssH); ctx2.stroke(); }
 
-    ctx2.strokeStyle = accent; ctx2.lineWidth = 2; ctx2.lineJoin = "round"; ctx2.lineCap = "round";
-    ctx2.beginPath();
-    let started = false;
-    for (const [x, y] of pts) {
-      if (!Number.isFinite(y)) { started = false; continue; }
-      if (!started) { ctx2.moveTo(X(x), Y(y)); started = true; }
-      else ctx2.lineTo(X(x), Y(y));
-    }
-    ctx2.stroke();
+    ctx2.lineJoin = "round"; ctx2.lineCap = "round";
+    series.forEach((pts, fi) => {
+      ctx2.strokeStyle = colors[fi % colors.length];
+      ctx2.lineWidth = 2;
+      ctx2.beginPath();
+      let started = false;
+      for (const [x, y] of pts) {
+        if (!Number.isFinite(y)) { started = false; continue; }
+        if (!started) { ctx2.moveTo(X(x), Y(y)); started = true; }
+        else ctx2.lineTo(X(x), Y(y));
+      }
+      ctx2.stroke();
+    });
 
     ctx2.fillStyle = dim; ctx2.font = "11px ui-monospace, monospace";
     ctx2.textAlign = "left";
     ctx2.fillText("y " + ymin.toFixed(2) + " … " + ymax.toFixed(2), 8, 14);
     ctx2.textAlign = "right";
     ctx2.fillText("x " + x0 + " … " + x1, cssW - 8, cssH - 8);
-    if (graphMsg) graphMsg.textContent = "f(x) = " + (src || "sin(x)");
+    if (graphMsg) graphMsg.textContent = fns.map((f, i) => "f" + (i + 1) + "(x) = " + f.src).join("   ·   ");
   }
 
   if (graphClose) graphClose.addEventListener("click", closeGraph);
