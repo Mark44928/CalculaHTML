@@ -1,6 +1,6 @@
 // Bump when the shell files below change, so clients pick up the new version
 // instead of serving a stale cache forever.
-const CACHE_NAME = "calculahtml-v5";
+const CACHE_NAME = "calculahtml-v7";
 const SHELL = [
   "./",
   "./index.html",
@@ -29,6 +29,25 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Same-origin GET responses are refreshed into the cache; the network fetch is
+// wrapped in event.waitUntil so the worker stays alive until the cache write
+// lands. Firing cache.put without waitUntil let the worker be killed first,
+// leaving clients on a stale shell forever.
+function refreshCache(event, request, res) {
+  const copy = res.clone();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
+  );
+}
+
+function cacheable(request) {
+  try {
+    return new URL(request.url).origin === self.location.origin;
+  } catch (e) {
+    return false;
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
@@ -41,11 +60,11 @@ self.addEventListener("fetch", (event) => {
       caches.match(request).then((cached) => {
         const network = fetch(request)
           .then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            if (cacheable(request) && res.ok) refreshCache(event, request, res);
             return res;
           })
           .catch(() => cached || caches.match("./offline.html"));
+        event.waitUntil(network.catch(() => null));
         return cached || network;
       })
     );
@@ -53,8 +72,7 @@ self.addEventListener("fetch", (event) => {
   }
   event.respondWith(
     fetch(request).then((res) => {
-      const copy = res.clone();
-      caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+      if (cacheable(request) && res.ok) refreshCache(event, request, res);
       return res;
     }).catch(() => caches.match(request))
   );

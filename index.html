@@ -1172,6 +1172,7 @@ body {
           <div><kbd>0</kbd>–<kbd>9</kbd> <kbd>.</kbd></div><div>Digits and decimal point</div>
           <div><kbd>+</kbd> <kbd>-</kbd> <kbd>*</kbd> <kbd>/</kbd> <kbd>^</kbd></div><div>Operators</div>
           <div><kbd>Enter</kbd> / <kbd>=</kbd></div><div>Evaluate</div>
+          <div><kbd>↑</kbd> <kbd>↓</kbd></div><div>Recall previous / next expression</div>
           <div><kbd>Backspace</kbd></div><div>Delete last digit</div>
           <div><kbd>Delete</kbd></div><div>Clear entry</div>
           <div><kbd>Esc</kbd></div><div>Clear all</div>
@@ -1351,11 +1352,44 @@ body {
     return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
+  // >>> HISTORYNAV_BEGIN
+  function historyMove(entries, cursor, draft, current, direction) {
+    if (!entries.length) return { current, cursor, draft };
+    if (cursor >= entries.length) cursor = entries.length - 1;
+    if (direction > 0) {
+      if (cursor === -1) { draft = current; cursor = 0; }
+      else if (cursor < entries.length - 1) cursor += 1;
+      return { current: entries[cursor].expr, cursor, draft };
+    }
+    if (cursor === -1) return { current, cursor, draft };
+    if (cursor === 0) return { current: draft, cursor: -1, draft };
+    cursor -= 1;
+    return { current: entries[cursor].expr, cursor, draft };
+  }
+  // <<< HISTORYNAV_END
+
+  let historyCursor = -1;
+  let historyDraft = "0";
+  function resetHistoryCursor() {
+    historyCursor = -1;
+    historyDraft = current;
+  }
+  function recallHistory(direction) {
+    const next = historyMove(history, historyCursor, historyDraft, current, direction);
+    historyCursor = next.cursor;
+    historyDraft = next.draft;
+    current = next.current;
+    justEvaluated = false;
+    operator = null;
+    previous = "";
+    updateDisplay();
+  }
+
   historyList.addEventListener("click", (ev) => {
     const del = ev.target.closest(".hist-del");
     if (del) {
       const i = Number(del.dataset.del);
-      if (!isNaN(i) && history[i]) { history.splice(i, 1); renderHistory(); }
+      if (!isNaN(i) && history[i]) { history.splice(i, 1); renderHistory(); resetHistoryCursor(); }
       return;
     }
     const row = ev.target.closest(".row");
@@ -1366,6 +1400,7 @@ body {
     justEvaluated = false;
     operator = null;
     previous = "";
+    resetHistoryCursor();
     updateDisplay();
     showToast("Result loaded");
   });
@@ -1378,12 +1413,14 @@ body {
     operator = null;
     justEvaluated = true;
     if (shared.expr && shared.result) pushHistory(shared.expr, shared.result);
+    resetHistoryCursor();
     updateDisplay();
     if (shared.expr) displayExpr.textContent = shared.expr;
     showToast("Shared calculation loaded");
   }
 
   function inputDigit(d) {
+    resetHistoryCursor();
     if (justEvaluated || current === "Error") { current = d === "." ? "0." : d; justEvaluated = false; return; }
     if (d === ".") {
       if (current.includes(".")) return;
@@ -1411,6 +1448,7 @@ body {
   // <<< INPUTOP_END
 
   function evaluate(silent) {
+    resetHistoryCursor();
     if (operator === null) { justEvaluated = true; return; }
     const a = parseFloat(previous);
     const b = parseFloat(current);
@@ -1443,9 +1481,11 @@ body {
 
   function clearAll() {
     current = "0"; previous = ""; operator = null; justEvaluated = false;
+    resetHistoryCursor();
   }
-  function clearEntry() { current = "0"; }
+  function clearEntry() { current = "0"; resetHistoryCursor(); }
   function backspace() {
+    resetHistoryCursor();
     if (justEvaluated) return;
     if (current === "Error") { current = "0"; return; }
     if (current.length <= 1) current = "0";
@@ -1453,11 +1493,13 @@ body {
     if (current === "-" || current === "") current = "0";
   }
   function toggleSign() {
+    resetHistoryCursor();
     if (current === "0" || current === "Error") return;
     if (current.startsWith("-")) current = current.slice(1);
     else current = "-" + current;
   }
   function percent() {
+    resetHistoryCursor();
     const v = parseFloat(current);
     if (isNaN(v)) return;
     // Standard calculator semantics: with a pending + or -, "x%" means
@@ -1503,12 +1545,13 @@ body {
   function toRad(x) { return angleMode === "deg" ? (x * Math.PI / 180) : x; }
   function toDeg(x) { return angleMode === "deg" ? (x * 180 / Math.PI) : x; }
   function factorial(n) {
-    if (n < 0) return NaN;
+    if (!Number.isFinite(n) || n < 0) return NaN;
     if (n > 170) return Infinity;
     let r = 1; for (let i = 2; i <= n; i++) r *= i; return r;
   }
 
   function applySci(name) {
+    resetHistoryCursor();
     const x = parseFloat(current);
     if (name === "pi") { current = formatNumber(Math.PI); justEvaluated = false; updateDisplay(); beep(660); return; }
     if (name === "e") { current = formatNumber(Math.E); justEvaluated = false; updateDisplay(); beep(660); return; }
@@ -1575,7 +1618,7 @@ body {
 
   // Memory
   function memClear() { memory = 0; hasMemory = false; renderMemory(); updateDisplay(); showToast("MC"); }
-  function memRecall() { current = formatNumber(memory); justEvaluated = false; updateDisplay(); showToast("MR"); }
+  function memRecall() { current = formatNumber(memory); justEvaluated = false; resetHistoryCursor(); updateDisplay(); showToast("MR"); }
   // >>> MEM_BEGIN — pure, extracted by tests/test_logic.mjs (keep DOM-free)
   function memAdd() { const v = parseFloat(current); memory += Number.isFinite(v) ? v : 0; hasMemory = true; renderMemory(); showToast("M+"); }
   function memSub() { const v = parseFloat(current); memory -= Number.isFinite(v) ? v : 0; hasMemory = (memory !== 0); renderMemory(); showToast("M−"); }
@@ -1904,6 +1947,7 @@ body {
     current = s.current; previous = s.previous; operator = s.operator; justEvaluated = s.justEvaluated;
     memory = s.memory; hasMemory = s.hasMemory;
     if (s.history) { history.length = 0; history.push(...s.history); renderHistory(); }
+    resetHistoryCursor();
     renderMemory(); updateDisplay();
   }
   function undo() {
@@ -1964,10 +2008,14 @@ body {
 
   // >>> CSV_BEGIN — pure, extracted by tests/test_csv.mjs (keep DOM-free)
   // RFC 4180 CSV: quote everything that contains a comma, quote or newline,
-  // and double embedded quotes. Keeps spreadsheet imports sane for
-  // expressions like `1,2+3` or quoted strings from the expression tape.
+  // and double embedded quotes. Expressions pasted in from anywhere (share
+  // links, the expression tape) can start with = + - @, which spreadsheets
+  // treat as a formula — prefix those with an apostrophe (CWE-1236). Plain
+  // signed numbers are left alone so numeric columns keep numeric type.
+  const CSV_NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i;
   function csvCell(value) {
-    const s = String(value);
+    let s = String(value);
+    if (/^[=+\-@\t\r]/.test(s) && !CSV_NUMBER.test(s)) s = "'" + s;
     return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   }
   function historyToCsv(entries) {
@@ -2009,7 +2057,7 @@ body {
     }
   });
   const clearHistoryBtn = document.getElementById("clearHistory");
-  if (clearHistoryBtn) clearHistoryBtn.addEventListener("click", () => { history.length = 0; renderHistory(); });
+  if (clearHistoryBtn) clearHistoryBtn.addEventListener("click", () => { history.length = 0; renderHistory(); resetHistoryCursor(); });
 
   // Memory clear button
   const clearMemoryBtn = document.getElementById("clearMemory");
@@ -2055,6 +2103,9 @@ body {
 
   function handleAction(action, btn) {
     if (!action) return;
+    if (["digit","dot","op","equals","clear","ce","back","sign","percent","sci","const","mem"].includes(action)) {
+      resetHistoryCursor();
+    }
     switch (action) {
       case "digit": inputDigit(btn.dataset.value); break;
       case "dot": inputDigit("."); break;
@@ -2085,7 +2136,7 @@ body {
       case "undo": undo(); break;
       case "redo": redo(); break;
       case "history-clear":
-        history.length = 0; renderHistory(); break;
+        history.length = 0; renderHistory(); resetHistoryCursor(); break;
       default: break;
     }
     updateDisplay();
@@ -2125,6 +2176,14 @@ body {
       return;
     }
     if (!isGraphOpen() && !(helpModal && helpModal.classList.contains("show"))) {
+      if (k === "ArrowUp" || k === "ArrowDown") {
+        e.preventDefault();
+        if (!history.length) return;
+        pushUndo();
+        recallHistory(k === "ArrowUp" ? 1 : -1);
+        haptic();
+        return;
+      }
       const sciKeys = {
         s: "sin", c: "cos", t: "tan",
         l: "ln", r: "sqrt", q: "sq", i: "inv", f: "fact",
@@ -2160,7 +2219,7 @@ body {
       if (v === "clear") { pushUndo(); clearAll(); updateDisplay(); haptic(); return; }
       if (v === "percent") { pushUndo(); percent(); updateDisplay(); haptic(); return; }
       const opMap = {"+":"+","-":"-","*":"*","÷":"/","^":"^"};
-      if (opMap[v]) { pushUndo(); inputOperator(opMap[v]); updateDisplay(); haptic(); return; }
+      if (opMap[v]) { pushUndo(); resetHistoryCursor(); inputOperator(opMap[v]); updateDisplay(); haptic(); return; }
     }
   });
 

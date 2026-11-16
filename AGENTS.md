@@ -14,7 +14,7 @@ Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.ht
 
 - Keep everything in `index.html`, `css/styles.css`, `js/app.js`. Do not introduce frameworks.
 - Themes are defined as CSS custom properties under `[data-theme="..."]` in `css/styles.css`. Add new themes there and register an `<option>` in `index.html`.
-- Calculator logic lives in the IIFE in `js/app.js`. State: `current`, `previous`, `operator`, `memory`, `history`.
+- Calculator logic lives in the IIFE in `js/app.js`. State: `current`, `previous`, `operator`, `memory`, `history`, plus `historyCursor`/`historyDraft` for Up/Down recall.
 - No comments unless necessary; match existing style.
 
 ## Tasks
@@ -30,6 +30,6 @@ Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.ht
 - `JSON.parse(fs.readFileSync('manifest.webmanifest'))` — manifest valid
 - `make check` — all of the above + verifies inline CSS **and** JS match the single-file `index.html` (a JS edit that never reaches the page is the silent-failure mode this guards)
 - `node tests/test_csv.mjs` — unit tests for the history CSV builder (extracted via markers, 7 assertions)
-- `node tests/test_logic.mjs` — regression tests for the settings loader, operator chaining and memory ops (extracted via markers)
+- `node tests/test_logic.mjs` — regression tests for the settings loader, operator chaining, memory ops and Up/Down history recall (extracted via markers)
 - `make sync-size` / `make sync-js` — sync `css/styles.css` / `js/app.js` into `index.html`
 - Manual smoke test in browser (the CSV download and `?` overlay need a real browser)
