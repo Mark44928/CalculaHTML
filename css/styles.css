@@ -931,3 +931,14 @@ body {
 }
 .graph-msg { min-height: 1.2em; margin: 8px 0 0; font-size: .8rem; color: var(--fg-dim); }
 .graph-msg.err { color: var(--danger); }
+
+/* ---------- v1.3.0: unit converter ---------- */
+.units-card { width: min(620px, 96vw); }
+.unit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) auto; gap: 10px; align-items: end; margin: 12px 0; }
+.unit-grid label { display: flex; flex-direction: column; gap: 5px; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-dim); min-width: 0; }
+.unit-grid select, .unit-grid input { width: 100%; background: var(--surface-2); color: var(--fg); border: 1px solid var(--border); border-radius: 9px; padding: 9px 10px; font: inherit; font-size: .9rem; min-width: 0; }
+.unit-grid select:focus-visible, .unit-grid input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.unit-grid .meta-btn { height: 39px; white-space: nowrap; }
+.unit-result { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.unit-result output { flex: 1; font-size: clamp(1.25rem, 5vw, 1.8rem); font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+@media (max-width: 540px) { .unit-grid { grid-template-columns: 1fr 1fr; } .unit-grid label:nth-child(4) { grid-column: 1 / -1; } .unit-grid .meta-btn { grid-column: 1 / -1; } }

@@ -9,6 +9,7 @@ check:
 	python3 tests/check_themes.py
 	node tests/test_csv.mjs
 	node tests/test_logic.mjs
+	node tests/test_units.mjs
 	node tests/test_graph.mjs
 	node tests/test_share.mjs
 
