@@ -472,6 +472,55 @@
     }
   });
 
+  // >>> UNITS_BEGIN
+  const UNIT_CATEGORIES = {
+    length: { label: "Length", units: {
+      m: ["Metre", 1], km: ["Kilometre", 1000], cm: ["Centimetre", 0.01], mm: ["Millimetre", 0.001],
+      mi: ["Mile", 1609.344], yd: ["Yard", 0.9144], ft: ["Foot", 0.3048], in: ["Inch", 0.0254], nmi: ["Nautical mile", 1852],
+    }},
+    mass: { label: "Mass", units: {
+      kg: ["Kilogram", 1], g: ["Gram", 0.001], mg: ["Milligram", 0.000001], t: ["Tonne", 1000],
+      lb: ["Pound", 0.45359237], oz: ["Ounce", 0.028349523125], st: ["Stone", 6.35029318],
+    }},
+    temperature: { label: "Temperature", units: {
+      C: ["Celsius", 1], F: ["Fahrenheit", 1], K: ["Kelvin", 1],
+    }},
+    data: { label: "Data", units: {
+      B: ["Byte", 1], KB: ["Kilobyte", 1000], MB: ["Megabyte", 1e6], GB: ["Gigabyte", 1e9], TB: ["Terabyte", 1e12],
+      KiB: ["Kibibyte", 1024], MiB: ["Mebibyte", 1048576], GiB: ["Gibibyte", 1073741824],
+    }},
+    speed: { label: "Speed", units: {
+      mps: ["Metre/second", 1], kmh: ["Kilometre/hour", 1 / 3.6], mph: ["Mile/hour", 0.44704],
+      knot: ["Knot", 0.5144444444], fps: ["Foot/second", 0.3048],
+    }},
+    time: { label: "Time", units: {
+      s: ["Second", 1], min: ["Minute", 60], h: ["Hour", 3600], day: ["Day", 86400], week: ["Week", 604800],
+    }},
+    volume: { label: "Volume", units: {
+      L: ["Litre", 1], mL: ["Millilitre", 0.001], gal: ["US gallon", 3.785411784],
+      qt: ["US quart", 0.946352946], pt: ["US pint", 0.473176473], cup: ["US cup", 0.2365882365],
+      floz: ["US fluid ounce", 0.0295735295625],
+    }},
+    area: { label: "Area", units: {
+      m2: ["Square metre", 1], km2: ["Square kilometre", 1e6], ha: ["Hectare", 10000],
+      acre: ["Acre", 4046.8564224], ft2: ["Square foot", 0.09290304], in2: ["Square inch", 0.00064516],
+    }},
+    energy: { label: "Energy", units: {
+      J: ["Joule", 1], kJ: ["Kilojoule", 1000], cal: ["Calorie", 4.184], kcal: ["Kilocalorie", 4184],
+      Wh: ["Watt-hour", 3600], kWh: ["Kilowatt-hour", 3.6e6], BTU: ["BTU", 1055.05585262],
+    }},
+  };
+  function convertUnit(value, category, from, to) {
+    const spec = UNIT_CATEGORIES[category];
+    if (!spec || !(from in spec.units) || !(to in spec.units) || !Number.isFinite(value)) return NaN;
+    if (category === "temperature") {
+      const celsius = from === "C" ? value : from === "F" ? (value - 32) * 5 / 9 : value - 273.15;
+      return to === "C" ? celsius : to === "F" ? celsius * 9 / 5 + 32 : celsius + 273.15;
+    }
+    return value * spec.units[from][1] / spec.units[to][1];
+  }
+  // <<< UNITS_END
+
   // v1.1.0: keyboard-shortcuts help modal (? toggles it)
   const helpModal = document.getElementById("helpModal");
   const helpClose = document.getElementById("helpClose");
@@ -502,6 +551,18 @@
   const graphDownloadBtn = document.getElementById("graphDownload");
   const graphCanvas = document.getElementById("graphCanvas");
   const graphMsg = document.getElementById("graphMsg");
+
+  const unitsBtn = document.getElementById("unitsBtn");
+  const unitsModal = document.getElementById("unitsModal");
+  const unitsClose = document.getElementById("unitsClose");
+  const unitCat = document.getElementById("unitCat");
+  const unitFrom = document.getElementById("unitFrom");
+  const unitTo = document.getElementById("unitTo");
+  const unitInput = document.getElementById("unitInput");
+  const unitOut = document.getElementById("unitOut");
+  const unitSwap = document.getElementById("unitSwap");
+  const unitCopy = document.getElementById("unitCopy");
+  const unitMsg = document.getElementById("unitMsg");
 
   function compileExpression(src) {
     const s = String(src).toLowerCase()
@@ -577,6 +638,7 @@
   }
 
   function isGraphOpen() { return !!graphModal && graphModal.classList.contains("show"); }
+  function isUnitsOpen() { return !!unitsModal && unitsModal.classList.contains("show"); }
   function closeGraph() {
     if (!graphModal) return;
     graphModal.classList.remove("show");
@@ -584,12 +646,68 @@
   }
   function openGraph() {
     if (!graphModal) return;
+    if (isUnitsOpen()) closeUnits();
     if (!graphExpr.value.trim()) graphExpr.value = "sin(x)";
     graphModal.classList.add("show");
     graphModal.setAttribute("aria-hidden", "false");
     drawGraph();
     graphExpr.focus();
     graphExpr.select();
+  }
+
+  function unitOptions(category) {
+    return Object.entries(UNIT_CATEGORIES[category].units).map(([key, value]) => [key, value[0]]);
+  }
+  function fillUnitSelect(select, category, preferred) {
+    if (!select) return;
+    const options = unitOptions(category);
+    select.innerHTML = options.map(([key, label]) => `<option value="${key}">${label}</option>`).join("");
+    if (preferred && options.some(([key]) => key === preferred)) select.value = preferred;
+  }
+  function refreshUnits(reset) {
+    if (!unitCat || !unitFrom || !unitTo) return;
+    if (!unitCat.options.length) unitCat.innerHTML = Object.entries(UNIT_CATEGORIES).map(([key, value]) => `<option value="${key}">${value.label}</option>`).join("");
+    const category = unitCat.value;
+    if (reset) {
+      const keys = Object.keys(UNIT_CATEGORIES[category].units);
+      fillUnitSelect(unitFrom, category, keys[0]);
+      fillUnitSelect(unitTo, category, keys[1] || keys[0]);
+    }
+    const fromLabel = unitFrom.options[unitFrom.selectedIndex]?.textContent || unitFrom.value;
+    const toLabel = unitTo.options[unitTo.selectedIndex]?.textContent || unitTo.value;
+    const value = parseFloat(unitInput.value);
+    if (!Number.isFinite(value)) {
+      unitOut.textContent = "—";
+      unitMsg.textContent = "Enter a finite number";
+      unitMsg.classList.add("err");
+      return;
+    }
+    const converted = convertUnit(value, category, unitFrom.value, unitTo.value);
+    if (!Number.isFinite(converted)) {
+      unitOut.textContent = "—";
+      unitMsg.textContent = "Unsupported conversion";
+      unitMsg.classList.add("err");
+      return;
+    }
+    unitMsg.classList.remove("err");
+    unitOut.textContent = formatNumber(converted);
+    unitMsg.textContent = `${value} ${fromLabel} = ${formatNumber(converted)} ${toLabel}`;
+  }
+  function openUnits() {
+    if (!unitsModal) return;
+    if (isGraphOpen()) closeGraph();
+    const value = parseFloat(current);
+    if (Number.isFinite(value)) unitInput.value = value;
+    refreshUnits(true);
+    unitsModal.classList.add("show");
+    unitsModal.setAttribute("aria-hidden", "false");
+    unitInput.focus();
+    unitInput.select();
+  }
+  function closeUnits() {
+    if (!unitsModal) return;
+    unitsModal.classList.remove("show");
+    unitsModal.setAttribute("aria-hidden", "true");
   }
 
   function drawGraph() {
@@ -678,6 +796,27 @@
   if (graphClose) graphClose.addEventListener("click", closeGraph);
   if (graphModal) graphModal.addEventListener("click", (e) => { if (e.target === graphModal) closeGraph(); });
   if (graphBtn) graphBtn.addEventListener("click", openGraph);
+  if (unitsBtn) unitsBtn.addEventListener("click", openUnits);
+  if (unitsClose) unitsClose.addEventListener("click", closeUnits);
+  if (unitsModal) unitsModal.addEventListener("click", (e) => { if (e.target === unitsModal) closeUnits(); });
+  if (unitCat) unitCat.addEventListener("change", () => refreshUnits(true));
+  if (unitFrom) unitFrom.addEventListener("change", () => refreshUnits(false));
+  if (unitTo) unitTo.addEventListener("change", () => refreshUnits(false));
+  if (unitInput) unitInput.addEventListener("input", () => refreshUnits(false));
+  if (unitSwap) unitSwap.addEventListener("click", () => {
+    const from = unitFrom.value;
+    unitFrom.value = unitTo.value;
+    unitTo.value = from;
+    refreshUnits(false);
+  });
+  if (unitCopy) unitCopy.addEventListener("click", () => {
+    const text = unitOut.textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => showToast("Converted value copied")).catch(() => showToast("Copy failed"));
+    } else {
+      showToast("Clipboard unavailable");
+    }
+  });
   if (graphDrawBtn) graphDrawBtn.addEventListener("click", drawGraph);
   if (graphDownloadBtn) graphDownloadBtn.addEventListener("click", () => {
     if (!graphCanvas || !graphCanvas.getContext) return;
@@ -953,6 +1092,12 @@
     const k = e.key;
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
       if (k === "Escape" && isGraphOpen()) { e.preventDefault(); closeGraph(); }
+      if (k === "Escape" && isUnitsOpen()) { e.preventDefault(); closeUnits(); }
+      return;
+    }
+    if (isUnitsOpen()) {
+      e.preventDefault();
+      if (k === "Escape" || k === "u" || k === "U") closeUnits();
       return;
     }
     // ? toggles the shortcut help from anywhere (Shift+? on most layouts);
@@ -966,6 +1111,11 @@
     if (k === "g" || k === "G") {
       e.preventDefault();
       if (isGraphOpen()) closeGraph(); else openGraph();
+      return;
+    }
+    if (k === "u" || k === "U") {
+      e.preventDefault();
+      if (isUnitsOpen()) closeUnits(); else openUnits();
       return;
     }
     if (!isGraphOpen() && !(helpModal && helpModal.classList.contains("show"))) {
