@@ -35,6 +35,15 @@ check("plain cell", csvCell("1+2"), "1+2");
 check("comma quoted", csvCell("1,2+3"), '"1,2+3"');
 check("newline quoted", csvCell("a\nb"), '"a\nb"');
 check("quote doubled", csvCell('say "hi"'), '"say ""hi"""');
+// CWE-1236: cells that open as a spreadsheet formula get an apostrophe
+// prefix; plain signed numbers keep numeric type.
+check("formula = prefixed", csvCell("=1+1"), "'=1+1");
+check("formula + prefixed", csvCell("+2+3"), "'+2+3");
+check("formula - prefixed", csvCell("-2+3"), "'-2+3");
+check("formula @ prefixed", csvCell("@SUM(A1)"), "'@SUM(A1)");
+check("negative number kept", csvCell("-42"), "-42");
+check("signed float kept", csvCell("-3.5e2"), "-3.5e2");
+check("plus number kept", csvCell("+7"), "+7");
 
 // full document
 check(
@@ -46,7 +55,7 @@ check("empty history", historyToCsv([]), "expression,result\n");
 check(
   "hostile expressions survive",
   historyToCsv([{ expr: 'f("a,b"\nc)', result: "=,3" }]),
-  'expression,result\n"f(""a,b""\nc)","=,3"\n',
+  'expression,result\n"f(""a,b""\nc)","\'=,3"\n',
 );
 
 console.log(`csv: ${pass} passed, ${fail} failed`);

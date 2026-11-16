@@ -23,6 +23,8 @@ A feature-rich, responsive calculator that runs entirely in the browser: 15 them
 - Memory: `MC MR M+ M− MS`
 - History tape with up to 100 entries — copy it, or **download it as CSV**
   (proper RFC 4180 quoting) for spreadsheets and record keeping
+- **Keyboard history recall** — press `↑` / `↓` to step through previous
+  expressions without leaving the keypad; typing resumes your draft
 - **Share links** — copy a URL that restores the latest calculation and result
   when opened (expression and value live in the URL fragment, no backend)
 - 15 themes + System (auto light/dark): Dark, Light, Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin Mocha, One Dark, Solarized Dark, Rose Pine, Monokai, GitHub Dark, Old Dark, Greenit
@@ -45,6 +47,9 @@ A feature-rich, responsive calculator that runs entirely in the browser: 15 them
   long enough for the browser to pick it up (immediate revoke aborted the
   download in Firefox), and CI runs
   `make check` (inline CSS **and** JS sync) plus the CSV unit tests.
+- v1.2.0 adds **keyboard history recall**: `↑` steps back through previous
+  expressions, `↓` returns toward the draft, and any fresh input clears the
+  recall cursor. The pure navigation rule is covered by `tests/test_logic.mjs`.
 
 ## Install as an app (PWA)
 
@@ -80,6 +85,7 @@ Switch themes from the dropdown or the color swatches. The choice is saved in `l
 | `0-9`, `.` | input |
 | `+ - * / ^` | operators |
 | `Enter` / `=` | evaluate |
+| `↑` / `↓` | recall previous / next expression from history |
 | `Backspace` | delete |
 | `Esc` | clear all |
 | `Delete` | clear entry |
@@ -146,9 +152,9 @@ Tiny, dependency-free tools from the same family:
 
 - [plusafetch](https://github.com/Mark44928/plusafetch) — C++23 fetch for Termux — ~23 ms, zero subprocesses on the default path
 - [Plusalator](https://github.com/Mark44928/Plusalator) — C++17 calculator REPL — Qalculate-flavored, ghost autosuggest, 18 themes
-- [GrubBlastersHTML](https://github.com/Mark44928/GrubBlastersHTML) — Worms-style artillery in one HTML file — 70 weapons, fully destructible terrain
+- [GrubBlastersHTML](https://github.com/Mark44928/GrubBlastersHTML) — Turn-based artillery in one HTML file — 72 weapons, fully destructible terrain
 - [SnakTUI](https://github.com/Mark44928/SnakTUI) — modern Snake for your terminal — Textual + Python
-- [Easy-Termux-Package-Manager](https://github.com/Mark44928/Easy-Termux-Package-Manager) — fzf-driven package manager for Termux — snapshots, audit, 183 tests
+- [Easy-Termux-Package-Manager](https://github.com/Mark44928/Easy-Termux-Package-Manager) — fzf-driven package manager for Termux — snapshots, audit, 186 tests
 - [NoNameOS](https://github.com/Mark44928/NoNameOS) — OS simulation in a single C++17 file — virtual FS, real shell
 - [Greenit](https://github.com/Mark44928/Greenit) — green-injected theme family — dark + light, single palette.json
 - [android12-fastfetch](https://github.com/Mark44928/android12-fastfetch) — fastfetch config for Android 12 + native X11 Termux desktops

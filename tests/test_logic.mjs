@@ -112,5 +112,58 @@ function check(label, got, want) {
   check("finite values accumulate", finite.state().memory, 84);
 }
 
+// ---- HISTORYNAV: Up/Down recall must preserve the draft and clamp at both ends ----
+{
+  const slice = extract("HISTORYNAV");
+  const historyMove = new Function(`${slice}\nreturn historyMove;`)();
+  const entries = [{ expr: "1+1" }, { expr: "2+2" }, { expr: "3+3" }];
+
+  check(
+    "up from draft recalls newest and stores draft",
+    historyMove(entries, -1, "9", "9", 1),
+    { current: "1+1", cursor: 0, draft: "9" },
+  );
+  check(
+    "up again recalls older",
+    historyMove(entries, 0, "9", "1+1", 1),
+    { current: "2+2", cursor: 1, draft: "9" },
+  );
+  check(
+    "up clamps at oldest",
+    historyMove(entries, 2, "9", "3+3", 1),
+    { current: "3+3", cursor: 2, draft: "9" },
+  );
+  check(
+    "down returns toward newest",
+    historyMove(entries, 2, "9", "3+3", -1),
+    { current: "2+2", cursor: 1, draft: "9" },
+  );
+  check(
+    "down at newest restores draft",
+    historyMove(entries, 0, "9", "1+1", -1),
+    { current: "9", cursor: -1, draft: "9" },
+  );
+  check(
+    "down at draft is a no-op",
+    historyMove(entries, -1, "9", "9", -1),
+    { current: "9", cursor: -1, draft: "9" },
+  );
+  check(
+    "empty history is a no-op",
+    historyMove([], -1, "9", "9", 1),
+    { current: "9", cursor: -1, draft: "9" },
+  );
+  check(
+    "stale cursor past the end clamps to last entry",
+    historyMove([{ expr: "1+1" }], 5, "9", "9", 1),
+    { current: "1+1", cursor: 0, draft: "9" },
+  );
+  check(
+    "stale cursor does not crash the down direction either",
+    historyMove([{ expr: "1+1" }, { expr: "2+2" }], 9, "9", "x", -1),
+    { current: "1+1", cursor: 0, draft: "9" },
+  );
+}
+
 console.log(`logic: ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
