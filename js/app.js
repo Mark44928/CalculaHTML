@@ -141,10 +141,6 @@
       `<div class="row" data-i="${i}" title="Click to reuse result"><span class="e">${escapeHtml(h.expr)}</span><span class="r">${escapeHtml(h.result)}</span><button class="hist-del" data-del="${i}" title="Delete" aria-label="Delete history entry">×</button></div>`
     ).join("");
   }
-  function escapeHtml(s) {
-    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  }
-
   // >>> HISTORYNAV_BEGIN
   function historyMove(entries, cursor, draft, current, direction) {
     if (!entries.length) return { current, cursor, draft };
