@@ -42,6 +42,16 @@ check("3--2", 0, 5);
 check("0.5x", 4, 2);
 check("tau", 0, 2 * Math.PI);
 check("phi", 0, (1 + Math.sqrt(5)) / 2);
+check("sin(t)", Math.PI / 2, 0);
+
+try {
+  const animated = compile("sin(t)+x", 90)(0);
+  if (near(animated, 1)) passed++;
+  else { failed++; console.log(`FAIL animated t -> ${animated}, want 1`); }
+} catch (err) {
+  failed++;
+  console.log(`FAIL animated t threw ${err.message}`);
+}
 
 rejects("sin(");
 rejects("foo(x)");
