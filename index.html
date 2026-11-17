@@ -936,13 +936,16 @@ body {
 }
 .graph-controls label { display: flex; align-items: center; gap: 6px; font-size: .8rem; opacity: .8; }
 .graph-controls input[type="text"],
-.graph-controls input[type="number"] {
+.graph-controls input[type="number"],
+.graph-controls select {
   background: var(--surface-2); color: var(--fg); border: 1px solid var(--border);
   border-radius: 8px; padding: 8px 10px; font: inherit; font-size: .85rem; min-width: 0;
 }
 .graph-controls input[type="text"] { flex: 1 1 220px; font-family: ui-monospace, monospace; }
 .graph-controls input[type="number"] { width: 80px; }
-.graph-controls input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.graph-controls select { max-width: 150px; }
+.graph-controls input:focus-visible,
+.graph-controls select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 #graphCanvas {
   display: block; width: 100%; height: auto; background: var(--surface-2);
   border: 1px solid var(--border); border-radius: 10px;
@@ -1207,6 +1210,11 @@ body {
           <label>to <input id="graphXmax" type="number" step="any" value="10"></label>
           <button class="meta-btn" id="graphDraw">Plot</button>
           <button class="meta-btn" id="graphDownload" title="Download the plot as PNG">PNG</button>
+          <select id="graphPresetSelect" aria-label="Graph preset">
+            <option value="">Presets…</option>
+          </select>
+          <button class="meta-btn" id="graphPresetSave" title="Save the current graph as a preset">Save</button>
+          <button class="meta-btn" id="graphPresetDelete" title="Delete a saved preset">Delete</button>
         </div>
         <canvas id="graphCanvas" width="720" height="380" aria-label="Plot of the entered function"></canvas>
         <p class="graph-msg" id="graphMsg"></p>
@@ -1758,6 +1766,59 @@ body {
   }
   // <<< UNITS_END
 
+  // >>> GRAPH_PRESETS_BEGIN
+  const GRAPH_PRESETS_KEY = "calc-graph-presets";
+  const GRAPH_BUILTINS = Object.freeze([
+    { name: "Trig", expr: "sin(x), cos(x)", xmin: -6.29, xmax: 6.29 },
+    { name: "Polynomial", expr: "x^2 - 4", xmin: -5, xmax: 5 },
+    { name: "Exponential", expr: "exp(x), 2^x", xmin: -3, xmax: 3 },
+    { name: "Reciprocal", expr: "1/x", xmin: 0.1, xmax: 10 },
+    { name: "Logarithm", expr: "ln(x), log(x)", xmin: 0.1, xmax: 10 },
+  ]);
+  function graphPresetCleanName(value) {
+    return String(value || "").trim().replace(/\s+/g, " ").slice(0, 40);
+  }
+  function graphPresetCleanExpr(value) {
+    return String(value || "").trim().slice(0, 180);
+  }
+  function graphPresetClean(list) {
+    if (!Array.isArray(list)) return [];
+    const out = [];
+    const seen = new Set();
+    for (const item of list) {
+      if (!item || typeof item !== "object") continue;
+      const name = graphPresetCleanName(item.name);
+      const expr = graphPresetCleanExpr(item.expr);
+      const xmin = Number(item.xmin), xmax = Number(item.xmax);
+      const key = name.toLowerCase();
+      if (!name || !expr || !Number.isFinite(xmin) || !Number.isFinite(xmax) || !(xmax > xmin) || seen.has(key)) continue;
+      seen.add(key);
+      out.push({ name, expr, xmin, xmax });
+      if (out.length >= 12) break;
+    }
+    return out;
+  }
+  function graphPresetLoad(raw) {
+    if (typeof raw !== "string" || !raw.trim()) return [];
+    try { return graphPresetClean(JSON.parse(raw)); }
+    catch (_) { return []; }
+  }
+  function graphPresetSerialize(list) {
+    return JSON.stringify(graphPresetClean(list));
+  }
+  function graphPresetFind(list, name) {
+    const key = graphPresetCleanName(name).toLowerCase();
+    return (Array.isArray(list) ? list : []).find((item) => graphPresetCleanName(item.name).toLowerCase() === key) || null;
+  }
+  function graphPresetBuiltin(name) {
+    const key = String(name || "").trim().toLowerCase();
+    return GRAPH_BUILTINS.find((item) => item.name.toLowerCase() === key) || null;
+  }
+  function graphPresetAll(userPresets) {
+    return GRAPH_BUILTINS.concat(graphPresetClean(userPresets));
+  }
+  // <<< GRAPH_PRESETS_END
+
   // v1.1.0: keyboard-shortcuts help modal (? toggles it)
   const helpModal = document.getElementById("helpModal");
   const helpClose = document.getElementById("helpClose");
@@ -1786,8 +1847,12 @@ body {
   const graphXmax = document.getElementById("graphXmax");
   const graphDrawBtn = document.getElementById("graphDraw");
   const graphDownloadBtn = document.getElementById("graphDownload");
+  const graphPresetSelect = document.getElementById("graphPresetSelect");
+  const graphPresetSave = document.getElementById("graphPresetSave");
+  const graphPresetDelete = document.getElementById("graphPresetDelete");
   const graphCanvas = document.getElementById("graphCanvas");
   const graphMsg = document.getElementById("graphMsg");
+  let graphPresets = [];
 
   const unitsBtn = document.getElementById("unitsBtn");
   const unitsModal = document.getElementById("unitsModal");
@@ -1800,6 +1865,63 @@ body {
   const unitSwap = document.getElementById("unitSwap");
   const unitCopy = document.getElementById("unitCopy");
   const unitMsg = document.getElementById("unitMsg");
+
+  function readGraphPresets() {
+    let raw = "";
+    try { raw = localStorage.getItem(GRAPH_PRESETS_KEY) || ""; } catch (_) {}
+    graphPresets = graphPresetLoad(raw);
+    return graphPresets;
+  }
+  function renderGraphPresets(selectedUserName) {
+    if (!graphPresetSelect) return;
+    readGraphPresets();
+    const builtIns = GRAPH_BUILTINS.map((preset) => `<option value="builtin:${preset.name}">${preset.name}</option>`).join("");
+    const users = graphPresets.map((preset) => `<option value="user:${escapeHtml(preset.name)}"${selectedUserName === preset.name ? " selected" : ""}>${escapeHtml(preset.name)}</option>`).join("");
+    graphPresetSelect.innerHTML = '<option value="">Presets…</option><optgroup label="Built-in">' + builtIns + '</optgroup>' + (users ? '<optgroup label="Saved">' + users + '</optgroup>' : '');
+  }
+  function applyGraphPreset(value) {
+    if (!value) return false;
+    const [kind, ...rest] = value.split(":");
+    const name = rest.join(":");
+    const preset = kind === "builtin" ? graphPresetBuiltin(name) : graphPresetFind(readGraphPresets(), name);
+    if (!preset || !graphExpr || !graphXmin || !graphXmax) return false;
+    graphExpr.value = preset.expr;
+    graphXmin.value = String(preset.xmin);
+    graphXmax.value = String(preset.xmax);
+    drawGraph();
+    return true;
+  }
+  function saveGraphPreset() {
+    const name = graphPresetCleanName(window.prompt("Save graph preset as", graphExpr ? graphExpr.value : "") || "");
+    if (!name || !graphExpr || !graphXmin || !graphXmax) return;
+    const xmin = parseFloat(graphXmin.value), xmax = parseFloat(graphXmax.value);
+    if (!Number.isFinite(xmin) || !Number.isFinite(xmax) || !(xmax > xmin)) {
+      if (graphMsg) { graphMsg.textContent = "Set a valid x range before saving"; graphMsg.classList.add("err"); }
+      return;
+    }
+    const next = readGraphPresets().filter((preset) => preset.name.toLowerCase() !== name.toLowerCase());
+    next.push({ name, expr: graphPresetCleanExpr(graphExpr.value), xmin, xmax });
+    try { localStorage.setItem(GRAPH_PRESETS_KEY, graphPresetSerialize(next)); } catch (_) {}
+    renderGraphPresets(name);
+    if (graphMsg) { graphMsg.classList.remove("err"); graphMsg.textContent = `Saved preset “${name}”`; }
+  }
+  function deleteGraphPreset() {
+    const selected = graphPresetSelect ? graphPresetSelect.value : "";
+    const [kind, ...rest] = selected.split(":");
+    const name = rest.join(":");
+    if (kind !== "user" || !name) {
+      if (graphMsg) { graphMsg.textContent = "Select a saved preset first"; graphMsg.classList.add("err"); }
+      return;
+    }
+    if (!window.confirm(`Delete preset “${name}”?`)) return;
+    const next = readGraphPresets().filter((preset) => preset.name.toLowerCase() !== name.toLowerCase());
+    try { localStorage.setItem(GRAPH_PRESETS_KEY, graphPresetSerialize(next)); } catch (_) {}
+    renderGraphPresets("");
+    if (graphMsg) { graphMsg.classList.remove("err"); graphMsg.textContent = `Deleted preset “${name}”`; }
+  }
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+  }
 
   function compileExpression(src) {
     const s = String(src).toLowerCase()
@@ -1885,6 +2007,7 @@ body {
     if (!graphModal) return;
     if (isUnitsOpen()) closeUnits();
     if (!graphExpr.value.trim()) graphExpr.value = "sin(x)";
+    renderGraphPresets("");
     graphModal.classList.add("show");
     graphModal.setAttribute("aria-hidden", "false");
     drawGraph();
@@ -2055,6 +2178,9 @@ body {
     }
   });
   if (graphDrawBtn) graphDrawBtn.addEventListener("click", drawGraph);
+  if (graphPresetSelect) graphPresetSelect.addEventListener("change", () => { applyGraphPreset(graphPresetSelect.value); if (graphPresetSelect.value) graphPresetSelect.value = ""; });
+  if (graphPresetSave) graphPresetSave.addEventListener("click", saveGraphPreset);
+  if (graphPresetDelete) graphPresetDelete.addEventListener("click", deleteGraphPreset);
   if (graphDownloadBtn) graphDownloadBtn.addEventListener("click", () => {
     if (!graphCanvas || !graphCanvas.getContext) return;
     if (!drawGraph()) return;

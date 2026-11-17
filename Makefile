@@ -11,6 +11,7 @@ check:
 	node tests/test_logic.mjs
 	node tests/test_units.mjs
 	node tests/test_graph.mjs
+	node tests/test_graph_presets.mjs
 	node tests/test_share.mjs
 
 sync-size:
