@@ -569,9 +569,6 @@
     const key = String(name || "").trim().toLowerCase();
     return GRAPH_BUILTINS.find((item) => item.name.toLowerCase() === key) || null;
   }
-  function graphPresetAll(userPresets) {
-    return GRAPH_BUILTINS.concat(graphPresetClean(userPresets));
-  }
   // <<< GRAPH_PRESETS_END
 
   // v1.1.0: keyboard-shortcuts help modal (? toggles it)
