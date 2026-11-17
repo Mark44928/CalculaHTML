@@ -32,8 +32,10 @@ A feature-rich, responsive calculator that runs entirely in the browser: 15 them
 - **Function graph** — press <kbd>G</kbd> for a canvas plot of `y = f(x)`:
   `x`, `+ − * / ^`, `sin cos tan ln log log2 sqrt abs exp` and constants
   `pi tau phi e`, implicit multiplication (`2x`, `3sin(x)`), custom x-range,
-  live redraw, a self-contained parser (no `eval`), and one-tap **PNG export**
-  of the current plot
+  live redraw, a self-contained parser (no `eval`), one-tap **PNG export**
+  of the current plot, and reusable **graph presets** — built-in trig,
+  polynomial, exponential and reciprocal curves, plus save/delete your own
+  ranges and formulas locally
 - **Unit converter** — press <kbd>U</kbd> for length, mass, temperature, data,
   speed, time, volume, area and energy conversions, with swap and copy result
 - **Keyboard shortcut overlay** — press <kbd>?</kbd> any time to see every
@@ -54,6 +56,9 @@ A feature-rich, responsive calculator that runs entirely in the browser: 15 them
   recall cursor. The pure navigation rule is covered by `tests/test_logic.mjs`.
 - v1.3.0 adds the **Unit converter**: 9 categories, temperature-aware
   conversions, swap, copy, an automatic current-result seed and 16 unit tests.
+- v1.4.0 adds **graph presets**: built-in curve sets, save/load/delete for up to
+  12 custom formulas and x-ranges, stored in `localStorage`, with dedicated
+  preset tests alongside the graph parser suite.
 
 ## Install as an app (PWA)
 
