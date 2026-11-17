@@ -595,12 +595,16 @@
   const graphXmax = document.getElementById("graphXmax");
   const graphDrawBtn = document.getElementById("graphDraw");
   const graphDownloadBtn = document.getElementById("graphDownload");
+  const graphT = document.getElementById("graphT");
+  const graphAnimBtn = document.getElementById("graphAnim");
   const graphPresetSelect = document.getElementById("graphPresetSelect");
   const graphPresetSave = document.getElementById("graphPresetSave");
   const graphPresetDelete = document.getElementById("graphPresetDelete");
   const graphCanvas = document.getElementById("graphCanvas");
   const graphMsg = document.getElementById("graphMsg");
   let graphPresets = [];
+  let graphTime = 0;
+  let graphFrame = null;
 
   const unitsBtn = document.getElementById("unitsBtn");
   const unitsModal = document.getElementById("unitsModal");
@@ -671,7 +675,7 @@
     return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
   }
 
-  function compileExpression(src) {
+  function compileExpression(src, graphT = 0) {
     const s = String(src).toLowerCase()
       .replace(/\s+/g, "").replace(/−/g, "-").replace(/×/g, "*")
       .replace(/÷/g, "/").replace(/π/g, "pi");
@@ -699,6 +703,7 @@
       if (id) {
         const name = id[0]; i += name.length;
         if (name === "x") return (x) => x;
+        if (name === "t") return () => graphT;
         if (name === "pi") return () => Math.PI;
         if (name === "tau") return () => 2 * Math.PI;
         if (name === "phi") return () => (1 + Math.sqrt(5)) / 2;
@@ -746,7 +751,13 @@
 
   function isGraphOpen() { return !!graphModal && graphModal.classList.contains("show"); }
   function isUnitsOpen() { return !!unitsModal && unitsModal.classList.contains("show"); }
+  function stopGraphAnimation() {
+    if (graphFrame !== null) cancelAnimationFrame(graphFrame);
+    graphFrame = null;
+    if (graphAnimBtn) graphAnimBtn.textContent = "Play t";
+  }
   function closeGraph() {
+    stopGraphAnimation();
     if (!graphModal) return;
     graphModal.classList.remove("show");
     graphModal.setAttribute("aria-hidden", "true");
@@ -755,6 +766,7 @@
     if (!graphModal) return;
     if (isUnitsOpen()) closeUnits();
     if (!graphExpr.value.trim()) graphExpr.value = "sin(x)";
+    if (graphT) graphT.value = String(graphTime);
     renderGraphPresets("");
     graphModal.classList.add("show");
     graphModal.setAttribute("aria-hidden", "false");
@@ -826,7 +838,7 @@
     const parts = src.split(",").map((p) => p.trim()).filter(Boolean).slice(0, 3);
     const fns = [];
     for (const part of parts) {
-      try { fns.push({ src: part, fn: compileExpression(part) }); }
+      try { fns.push({ src: part, fn: compileExpression(part, graphTime) }); }
       catch (err) { fail("Parse error in “" + part + "”: " + err.message); return false; }
     }
     const x0 = parseFloat(graphXmin.value), x1 = parseFloat(graphXmax.value);
@@ -897,8 +909,25 @@
     ctx2.fillText("y " + ymin.toFixed(2) + " … " + ymax.toFixed(2), 8, 14);
     ctx2.textAlign = "right";
     ctx2.fillText("x " + x0 + " … " + x1, cssW - 8, cssH - 8);
-    if (graphMsg) graphMsg.textContent = fns.map((f, i) => "f" + (i + 1) + "(x) = " + f.src).join("   ·   ");
+    if (graphMsg) {
+      graphMsg.textContent = fns.map((f, i) => "f" + (i + 1) + "(x) = " + f.src).join("   ·   ")
+        + (parts.some((part) => /(^|[^a-z])t([^a-z]|$)/.test(part)) ? "   ·   t = " + graphTime.toFixed(2) : "");
+    }
     return true;
+  }
+
+  function graphFrameStep() {
+    if (!isGraphOpen()) { stopGraphAnimation(); return; }
+    graphTime = (graphTime + 0.06) % (Math.PI * 2);
+    if (graphT) graphT.value = String(graphTime);
+    if (!drawGraph()) { stopGraphAnimation(); return; }
+    graphFrame = requestAnimationFrame(graphFrameStep);
+  }
+  function toggleGraphAnimation() {
+    if (graphFrame !== null) { stopGraphAnimation(); return; }
+    graphTime = graphT ? (parseFloat(graphT.value) || 0) : graphTime;
+    if (graphAnimBtn) graphAnimBtn.textContent = "Pause t";
+    graphFrame = requestAnimationFrame(graphFrameStep);
   }
 
   if (graphClose) graphClose.addEventListener("click", closeGraph);
@@ -926,6 +955,12 @@
     }
   });
   if (graphDrawBtn) graphDrawBtn.addEventListener("click", drawGraph);
+  if (graphAnimBtn) graphAnimBtn.addEventListener("click", toggleGraphAnimation);
+  if (graphT) graphT.addEventListener("input", () => {
+    stopGraphAnimation();
+    graphTime = parseFloat(graphT.value) || 0;
+    drawGraph();
+  });
   if (graphPresetSelect) graphPresetSelect.addEventListener("change", () => { applyGraphPreset(graphPresetSelect.value); if (graphPresetSelect.value) graphPresetSelect.value = ""; });
   if (graphPresetSave) graphPresetSave.addEventListener("click", saveGraphPreset);
   if (graphPresetDelete) graphPresetDelete.addEventListener("click", deleteGraphPreset);
@@ -1194,6 +1229,7 @@
     "Backspace":"back", "Delete":"ce", "Escape":"clear",
     "%":"percent",
   };
+  let easterBuffer = "";
   window.addEventListener("keydown", (e) => {
     if (e.metaKey || e.ctrlKey) {
       if (e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); updateDisplay(); }
@@ -1201,6 +1237,10 @@
       return;
     }
     const k = e.key;
+    if (!isGraphOpen() && !isUnitsOpen() && !(helpModal && helpModal.classList.contains("show")) && /^[0-9]$/.test(k)) {
+      easterBuffer = (easterBuffer + k).slice(-4);
+      if (easterBuffer === "1337") { easterBuffer = ""; showToast("Elite mode: still a calculator."); }
+    }
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
       if (k === "Escape" && isGraphOpen()) { e.preventDefault(); closeGraph(); }
       if (k === "Escape" && isUnitsOpen()) { e.preventDefault(); closeUnits(); }
