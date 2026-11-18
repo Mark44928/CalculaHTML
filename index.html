@@ -953,6 +953,10 @@ body {
 }
 .graph-msg { min-height: 1.2em; margin: 8px 0 0; font-size: .8rem; color: var(--fg-dim); }
 .graph-msg.err { color: var(--danger); }
+.graph-area-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: .8rem; }
+.graph-area-row label { display: flex; align-items: center; gap: 6px; opacity: .9; cursor: pointer; }
+.graph-area-row input { accent-color: var(--accent); }
+.graph-area-hint { opacity: .6; font-size: .75rem; }
 
 /* ---------- v1.3.0: unit converter ---------- */
 .units-card { width: min(620px, 96vw); }
@@ -1197,7 +1201,7 @@ body {
           <div><kbd>l</kbd> <kbd>r</kbd> <kbd>q</kbd> <kbd>i</kbd> <kbd>f</kbd></div><div>ln / root / square / 1&divide;x / factorial</div>
           <div><kbd>p</kbd> · <kbd>g</kbd> · <kbd>u</kbd> · <kbd>?</kbd></div><div>π · graph · units · this help</div>
         </div>
-        <p style="margin-top:10px;font-size:.8rem;opacity:.75">Memory keys <strong>MC MR M+ M− MS</strong>, the angle toggle (<strong>DEG/RAD</strong>), the full history tape with CSV export and 15 themes live in the panels below the keypad. Everything works offline.</p>
+        <p style="margin-top:10px;font-size:.8rem;opacity:.75">Memory keys <strong>MC MR M+ M− MS</strong>, the angle toggle (<strong>DEG/RAD</strong>), the full history tape with CSV export and 15 themes live in the panels below the keypad. The graph modal's <strong>Estimate area</strong> checkbox approximates ∫ f₁(x) dx over the current x-range with Simpson's rule — only the <strong>first curve (f₁)</strong> is integrated, even when overlays are plotted; invalid, empty or non-finite cases show an error. Everything works offline.</p>
        </div>
     </div>
 
@@ -1218,6 +1222,10 @@ body {
           </select>
           <button class="meta-btn" id="graphPresetSave" title="Save the current graph as a preset">Save</button>
           <button class="meta-btn" id="graphPresetDelete" title="Delete a saved preset">Delete</button>
+        </div>
+        <div class="graph-area-row">
+          <label><input type="checkbox" id="graphArea"> Estimate area</label>
+          <span class="graph-area-hint">∫ f₁(x) dx over the x-range · Simpson's rule · first curve only</span>
         </div>
         <canvas id="graphCanvas" width="720" height="380" aria-label="Plot of the entered function"></canvas>
         <p class="graph-msg" id="graphMsg"></p>
@@ -1850,6 +1858,7 @@ body {
   const graphPresetDelete = document.getElementById("graphPresetDelete");
   const graphCanvas = document.getElementById("graphCanvas");
   const graphMsg = document.getElementById("graphMsg");
+  const graphArea = document.getElementById("graphArea");
   let graphPresets = [];
   let graphTime = 0;
   let graphFrame = null;
@@ -1997,6 +2006,19 @@ body {
     return fn;
   }
 
+  function simpsonArea(fn, x0, x1) {
+    const n = 1000;
+    const h = (x1 - x0) / n;
+    let sum = 0;
+    for (let k = 0; k <= n; k++) {
+      let y;
+      try { y = fn(x0 + h * k); } catch (_) { return NaN; }
+      if (!Number.isFinite(y)) return NaN;
+      sum += (k === 0 || k === n) ? y : (k % 2 === 0 ? 2 : 4) * y;
+    }
+    return (sum * h) / 3;
+  }
+
   function isGraphOpen() { return !!graphModal && graphModal.classList.contains("show"); }
   function isUnitsOpen() { return !!unitsModal && unitsModal.classList.contains("show"); }
   function stopGraphAnimation() {
@@ -2082,7 +2104,8 @@ body {
     if (!graphCanvas || !graphCanvas.getContext) return false;
     const fail = (m) => { if (graphMsg) { graphMsg.textContent = m; graphMsg.classList.add("err"); } };
     if (graphMsg) graphMsg.classList.remove("err");
-    const src = (graphExpr.value || "").trim() || "sin(x)";
+    const rawSrc = (graphExpr.value || "").trim();
+    const src = rawSrc || "sin(x)";
     const parts = src.split(",").map((p) => p.trim()).filter(Boolean).slice(0, 3);
     const fns = [];
     for (const part of parts) {
@@ -2157,9 +2180,23 @@ body {
     ctx2.fillText("y " + ymin.toFixed(2) + " … " + ymax.toFixed(2), 8, 14);
     ctx2.textAlign = "right";
     ctx2.fillText("x " + x0 + " … " + x1, cssW - 8, cssH - 8);
+    const baseMsg = fns.map((f, i) => "f" + (i + 1) + "(x) = " + f.src).join("   ·   ")
+      + (parts.some((part) => /(^|[^a-z])t([^a-z]|$)/.test(part)) ? "   ·   t = " + graphTime.toFixed(2) : "");
     if (graphMsg) {
-      graphMsg.textContent = fns.map((f, i) => "f" + (i + 1) + "(x) = " + f.src).join("   ·   ")
-        + (parts.some((part) => /(^|[^a-z])t([^a-z]|$)/.test(part)) ? "   ·   t = " + graphTime.toFixed(2) : "");
+      if (graphArea && graphArea.checked) {
+        const area = rawSrc ? simpsonArea(fns[0].fn, x0, x1) : NaN;
+        if (Number.isFinite(area)) {
+          const absArea = Math.abs(area);
+          const areaText = (area !== 0 && (absArea >= 1e12 || absArea < 1e-9)) ? area.toExponential(6) : String(Number(area.toPrecision(10)));
+          graphMsg.textContent = baseMsg + "   ·   ∫ f₁ dx ≈ " + areaText;
+        } else {
+          graphMsg.textContent = rawSrc ? "Area estimate unavailable: f₁ is not finite across the range" : "Estimate area: enter an expression first";
+          graphMsg.classList.add("err");
+          return true;
+        }
+      } else {
+        graphMsg.textContent = baseMsg;
+      }
     }
     return true;
   }
@@ -2203,6 +2240,7 @@ body {
     }
   });
   if (graphDrawBtn) graphDrawBtn.addEventListener("click", drawGraph);
+  if (graphArea) graphArea.addEventListener("change", drawGraph);
   if (graphAnimBtn) graphAnimBtn.addEventListener("click", toggleGraphAnimation);
   if (graphT) graphT.addEventListener("input", () => {
     stopGraphAnimation();

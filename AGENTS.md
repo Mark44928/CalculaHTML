@@ -32,6 +32,7 @@ Static HTML/CSS/JS calculator. No build tooling, no dependencies. Open `index.ht
 - `node tests/test_csv.mjs` — unit tests for the history CSV builder (extracted via markers, 14 assertions)
 - `node tests/test_logic.mjs` — regression tests for the settings loader, operator chaining, memory ops and Up/Down history recall (extracted via markers)
 - `node tests/test_units.mjs` — unit-converter regression tests (extracted via the UNITS markers)
+- `node tests/test_graph.mjs` — graph compiler + Simpson area regression tests (extracted via markers, 23 assertions)
 - `node tests/test_graph_presets.mjs` — graph-preset parsing/serialization regression tests (extracted via the GRAPH_PRESETS markers)
 - `make sync-size` / `make sync-js` — sync `css/styles.css` / `js/app.js` into `index.html`
 - Manual smoke test in browser (the CSV download and `?` overlay need a real browser)
