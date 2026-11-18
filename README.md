@@ -36,7 +36,8 @@ A responsive calculator that runs entirely in the browser: 15 themes plus a Syst
   of the current plot, reusable **graph presets** — built-in trig,
   polynomial, exponential and reciprocal curves, plus save/delete your own
   ranges and formulas locally — and an optional `t` parameter with a slider
-  and **Play t** animation
+  and **Play t** animation, plus an **Estimate area** toggle that approximates
+  ∫ f₁(x) dx over the current x-range (Simpson's rule, first curve only)
 - **Unit converter** — press <kbd>U</kbd> for length, mass, temperature, data,
   speed, time, volume, area and energy conversions, with swap and copy result
 - **Keyboard shortcut overlay** — press <kbd>?</kbd> any time to see every
@@ -62,6 +63,11 @@ A responsive calculator that runs entirely in the browser: 15 themes plus a Syst
   preset tests alongside the graph parser suite.
 - v1.5.0 adds **animated graphs**: expressions can use `t`, a slider selects the
   value, and **Play t** animates it without adding another parser or dependency.
+- v1.6.0 adds the graph **Estimate area** toggle: a 1000-panel Simpson's-rule
+  estimate of ∫ f₁(x) dx over the current x-range (first curve only, even with
+  overlays plotted), shown in the status line; invalid, empty, non-finite or
+  too-wide cases show an error instead of crashing. One new Simpson self-check,
+  98 checks in total.
 
 ## Install as an app (PWA)
 
@@ -170,7 +176,7 @@ Tiny, dependency-free tools from the same family:
 - [Plusalator](https://github.com/Mark44928/Plusalator) — C++17 calculator REPL — Qalculate-flavored, ghost autosuggest, 18 themes
 - [GrubBlastersHTML](https://github.com/Mark44928/GrubBlastersHTML) — Turn-based artillery in one HTML file — 72 weapons, fully destructible terrain
 - [SnakTUI](https://github.com/Mark44928/SnakTUI) — Snake game for the terminal — Textual + Python
-- [Easy-Termux-Package-Manager](https://github.com/Mark44928/Easy-Termux-Package-Manager) — fzf-driven package manager for Termux — snapshots, audit, 193 tests
+- [Easy-Termux-Package-Manager](https://github.com/Mark44928/Easy-Termux-Package-Manager) — fzf-driven package manager for Termux — snapshots, audit, 194 tests
 - [NoNameOS](https://github.com/Mark44928/NoNameOS) — OS simulation in a single C++17 file — virtual FS, real shell
 - [Greenit](https://github.com/Mark44928/Greenit) — green-injected theme family — dark + light, single palette.json
 - [android12-fastfetch](https://github.com/Mark44928/android12-fastfetch) — fastfetch config for Android 12 + native X11 Termux desktops

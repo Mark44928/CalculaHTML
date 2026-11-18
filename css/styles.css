@@ -935,6 +935,10 @@ body {
 }
 .graph-msg { min-height: 1.2em; margin: 8px 0 0; font-size: .8rem; color: var(--fg-dim); }
 .graph-msg.err { color: var(--danger); }
+.graph-area-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: .8rem; }
+.graph-area-row label { display: flex; align-items: center; gap: 6px; opacity: .9; cursor: pointer; }
+.graph-area-row input { accent-color: var(--accent); }
+.graph-area-hint { opacity: .6; font-size: .75rem; }
 
 /* ---------- v1.3.0: unit converter ---------- */
 .units-card { width: min(620px, 96vw); }

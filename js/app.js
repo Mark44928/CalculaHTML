@@ -602,6 +602,7 @@
   const graphPresetDelete = document.getElementById("graphPresetDelete");
   const graphCanvas = document.getElementById("graphCanvas");
   const graphMsg = document.getElementById("graphMsg");
+  const graphArea = document.getElementById("graphArea");
   let graphPresets = [];
   let graphTime = 0;
   let graphFrame = null;
@@ -749,6 +750,19 @@
     return fn;
   }
 
+  function simpsonArea(fn, x0, x1) {
+    const n = 1000;
+    const h = (x1 - x0) / n;
+    let sum = 0;
+    for (let k = 0; k <= n; k++) {
+      let y;
+      try { y = fn(x0 + h * k); } catch (_) { return NaN; }
+      if (!Number.isFinite(y)) return NaN;
+      sum += (k === 0 || k === n) ? y : (k % 2 === 0 ? 2 : 4) * y;
+    }
+    return (sum * h) / 3;
+  }
+
   function isGraphOpen() { return !!graphModal && graphModal.classList.contains("show"); }
   function isUnitsOpen() { return !!unitsModal && unitsModal.classList.contains("show"); }
   function stopGraphAnimation() {
@@ -834,7 +848,8 @@
     if (!graphCanvas || !graphCanvas.getContext) return false;
     const fail = (m) => { if (graphMsg) { graphMsg.textContent = m; graphMsg.classList.add("err"); } };
     if (graphMsg) graphMsg.classList.remove("err");
-    const src = (graphExpr.value || "").trim() || "sin(x)";
+    const rawSrc = (graphExpr.value || "").trim();
+    const src = rawSrc || "sin(x)";
     const parts = src.split(",").map((p) => p.trim()).filter(Boolean).slice(0, 3);
     const fns = [];
     for (const part of parts) {
@@ -909,9 +924,23 @@
     ctx2.fillText("y " + ymin.toFixed(2) + " … " + ymax.toFixed(2), 8, 14);
     ctx2.textAlign = "right";
     ctx2.fillText("x " + x0 + " … " + x1, cssW - 8, cssH - 8);
+    const baseMsg = fns.map((f, i) => "f" + (i + 1) + "(x) = " + f.src).join("   ·   ")
+      + (parts.some((part) => /(^|[^a-z])t([^a-z]|$)/.test(part)) ? "   ·   t = " + graphTime.toFixed(2) : "");
     if (graphMsg) {
-      graphMsg.textContent = fns.map((f, i) => "f" + (i + 1) + "(x) = " + f.src).join("   ·   ")
-        + (parts.some((part) => /(^|[^a-z])t([^a-z]|$)/.test(part)) ? "   ·   t = " + graphTime.toFixed(2) : "");
+      if (graphArea && graphArea.checked) {
+        const area = rawSrc ? simpsonArea(fns[0].fn, x0, x1) : NaN;
+        if (Number.isFinite(area)) {
+          const absArea = Math.abs(area);
+          const areaText = (area !== 0 && (absArea >= 1e12 || absArea < 1e-9)) ? area.toExponential(6) : String(Number(area.toPrecision(10)));
+          graphMsg.textContent = baseMsg + "   ·   ∫ f₁ dx ≈ " + areaText;
+        } else {
+          graphMsg.textContent = rawSrc ? "Area estimate unavailable: f₁ is not finite across the range" : "Estimate area: enter an expression first";
+          graphMsg.classList.add("err");
+          return true;
+        }
+      } else {
+        graphMsg.textContent = baseMsg;
+      }
     }
     return true;
   }
@@ -955,6 +984,7 @@
     }
   });
   if (graphDrawBtn) graphDrawBtn.addEventListener("click", drawGraph);
+  if (graphArea) graphArea.addEventListener("change", drawGraph);
   if (graphAnimBtn) graphAnimBtn.addEventListener("click", toggleGraphAnimation);
   if (graphT) graphT.addEventListener("input", () => {
     stopGraphAnimation();

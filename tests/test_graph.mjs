@@ -53,6 +53,20 @@ try {
   console.log(`FAIL animated t threw ${err.message}`);
 }
 
+// simpsonArea extracted separately; Simpson integrates quadratics exactly
+const sStart = src.indexOf("function simpsonArea");
+const sEnd = src.indexOf("\n  function isGraphOpen");
+if (sStart < 0 || sEnd < 0) throw new Error("simpsonArea not found in js/app.js");
+const simpsonArea = new Function(src.slice(sStart, sEnd) + "\nreturn simpsonArea;")();
+try {
+  const area = simpsonArea(compile("x^2"), 0, 1);
+  if (near(area, 1 / 3)) passed++;
+  else { failed++; console.log(`FAIL simpsonArea x^2 -> ${area}, want ${1 / 3}`); }
+} catch (err) {
+  failed++;
+  console.log(`FAIL simpsonArea x^2 threw ${err.message}`);
+}
+
 rejects("sin(");
 rejects("foo(x)");
 rejects("2+*3");
