@@ -462,6 +462,32 @@ body {
   --shadow-color: rgba(0,0,0,.45);
 }
 
+/* ---------- Bluney Dark ---------- */
+[data-theme="bluney"] {
+  --bg: #0E1B2E;
+  --bg-elev: #122A46;
+  --surface: #122A46;
+  --surface-2: #193754;
+  --fg: #E3EFF9;
+  --fg-muted: #B7CDE0;
+  --fg-dim: #7897B3;
+  --accent: #7DBBFF;
+  --accent-2: #8BD5FF;
+  --accent-3: #B9A8E0;
+  --operator: #E0CD97;
+  --equals: #7DBBFF;
+  --danger: #F07178;
+  --success: #7DBBFF;
+  --border: rgba(125,187,255,.1);
+  --btn-bg: #122A46;
+  --btn-fg: #E3EFF9;
+  --btn-hover: #193754;
+  --btn-active: #234764;
+  --display-bg: #091422;
+  --display-fg: #7DBBFF;
+  --shadow-color: rgba(0,0,0,.5);
+}
+
 /* ---------- Theme swatches ---------- */
 .theme-swatches {
   display: flex;
@@ -1011,6 +1037,7 @@ body {
           <option value="githubdark">GitHub Dark</option>
           <option value="olddark">Old Dark</option>
           <option value="greenit">Greenit (Dark)</option>
+          <option value="bluney">Bluney (Dark)</option>
         </select>
       </div>
       <button id="undoBtn" class="mode-btn" data-action="undo" title="Undo (Ctrl+Z)">Undo</button>
@@ -1037,6 +1064,7 @@ body {
       <button data-theme="githubdark" title="GitHub Dark" style="background:#58a6ff"></button>
       <button data-theme="olddark" title="Old Dark" style="background:#ffb347"></button>
       <button data-theme="greenit" title="Greenit" style="background:#7BD88F"></button>
+      <button data-theme="bluney" title="Bluney" style="background:#7DBBFF"></button>
     </div>
       <div class="display">
         <div class="expr" id="expr" aria-live="polite"></div>
@@ -1212,7 +1240,7 @@ body {
           <div><kbd>l</kbd> <kbd>r</kbd> <kbd>q</kbd> <kbd>i</kbd> <kbd>f</kbd></div><div>ln / root / square / 1&divide;x / factorial</div>
           <div><kbd>p</kbd> · <kbd>g</kbd> · <kbd>u</kbd> · <kbd>?</kbd></div><div>π · graph · units · this help</div>
         </div>
-        <p style="margin-top:10px;font-size:.8rem;opacity:.75">Memory keys <strong>MC MR M+ M− MS</strong>, the angle toggle (<strong>DEG/RAD</strong>), the full history tape with CSV export and 15 themes live in the panels below the keypad. The graph modal's <strong>Estimate area</strong> checkbox approximates ∫ f₁(x) dx over the current x-range with Simpson's rule — only the <strong>first curve (f₁)</strong> is integrated, even when overlays are plotted; invalid, empty or non-finite cases show an error. Everything works offline.</p>
+        <p style="margin-top:10px;font-size:.8rem;opacity:.75">Memory keys <strong>MC MR M+ M− MS</strong>, the angle toggle (<strong>DEG/RAD</strong>), the full history tape with CSV export and 16 themes live in the panels below the keypad. The graph modal's <strong>Estimate area</strong> checkbox approximates ∫ f₁(x) dx over the current x-range with Simpson's rule — only the <strong>first curve (f₁)</strong> is integrated, even when overlays are plotted; invalid, empty or non-finite cases show an error. Everything works offline.</p>
        </div>
     </div>
 
@@ -1325,6 +1353,7 @@ body {
     if (!isFinite(n)) return String(n);
     let s = String(n);
     if (s.includes("e") || s.includes("E")) return s;
+    if (Number.isSafeInteger(n)) return s; // don't mangle exact integers to 12 digits
     if (s.length > 14) {
       const fixed = n.toPrecision(settings.precision || 12);
       return parseFloat(fixed).toString();
@@ -1660,13 +1689,17 @@ body {
   }
 
   function comb(n, r) {
-    if (r < 0 || r > n || n < 0) return NaN;
+    if (!Number.isFinite(n) || !Number.isFinite(r) || r < 0 || r > n || n < 0 || n > 1e15) return NaN;
+    r = Math.min(r, n - r); // C(n, r) === C(n, n - r); the smaller side keeps the loop bounded
+    if (r > 1e6) return NaN;
     let res = 1;
     for (let i = 1; i <= r; i++) res = res * (n - r + i) / i;
     return Math.round(res);
   }
   function perm(n, r) {
-    if (r < 0 || r > n || n < 0) return NaN;
+    if (!Number.isFinite(n) || !Number.isFinite(r) || r < 0 || r > n || n < 0 || n > 1e15) return NaN;
+    r = Math.min(r, n);
+    if (r > 1e6) return NaN;
     let res = 1;
     for (let i = 0; i < r; i++) res *= (n - i);
     return res;
@@ -1920,6 +1953,10 @@ body {
       return;
     }
     const next = readGraphPresets().filter((preset) => preset.name.toLowerCase() !== name.toLowerCase());
+    if (next.length >= 12) {
+      if (graphMsg) { graphMsg.classList.add("err"); graphMsg.textContent = "Preset list is full (12) — delete one first"; }
+      return;
+    }
     next.push({ name, expr: graphPresetCleanExpr(graphExpr.value), xmin, xmax });
     try { localStorage.setItem(GRAPH_PRESETS_KEY, graphPresetSerialize(next)); } catch (_) {}
     renderGraphPresets(name);

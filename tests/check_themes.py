@@ -20,8 +20,8 @@ def main() -> int:
         print(f"theme drift: option-only={missing_css} css-only={missing_option}")
         return 1
 
-    if len(option_values) != 15:
-        print(f"expected 15 themes, found {len(option_values)}: {sorted(option_values)}")
+    if len(option_values) != 16:
+        print(f"expected 16 themes, found {len(option_values)}: {sorted(option_values)}")
         return 1
 
     for _, label in options:
