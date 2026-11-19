@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/github/stars/Mark44928/CalculaHTML?style=social" alt="Stars">
 </p>
 
-A responsive calculator that runs entirely in the browser: 16 themes plus a System (auto) mode, scientific functions, memory, a history tape, keyboard support, and offline PWA support.
+A responsive calculator that runs entirely in the browser: 17 themes plus a System (auto) mode, scientific functions, memory, a history tape, keyboard support, and offline PWA support.
 
 **Live demo:** https://mark44928.github.io/CalculaHTML/
 
@@ -29,7 +29,7 @@ A responsive calculator that runs entirely in the browser: 16 themes plus a Syst
   expressions without leaving the keypad; typing resumes your draft
 - **Share links** — copy a URL that restores the latest calculation and result
   when opened (expression and value live in the URL fragment, no backend)
-- 16 themes + System (auto light/dark): Dark, Light, Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin Mocha, One Dark, Solarized Dark, Rose Pine, Monokai, GitHub Dark, Old Dark, Greenit, Bluney
+- 17 themes + System (auto light/dark): Dark, Light, Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin Mocha, One Dark, Solarized Dark, Rose Pine, Monokai, GitHub Dark, Old Dark, Greenit, Bluney, Yellen
 - Keyboard support, copy result, angle mode (DEG/RAD)
 - **Function graph** — press <kbd>G</kbd> for a canvas plot of `y = f(x)`:
   `x`, `+ − * / ^`, `sin cos tan ln log log2 sqrt abs exp` and constants
@@ -65,7 +65,7 @@ A responsive calculator that runs entirely in the browser: 16 themes plus a Syst
   preset tests alongside the graph parser suite.
 - v1.5.0 adds **animated graphs**: expressions can use `t`, a slider selects the
   value, and **Play t** animates it without adding another parser or dependency.
-- v1.7.0 adds the **Bluney** blue theme and refreshes the service-worker shell.
+- v1.8.0 adds the **Yellen** gold theme and refreshes the service-worker shell.
 - v1.6.0 adds the graph **Estimate area** toggle: a 1000-panel Simpson's-rule
   estimate of ∫ f₁(x) dx over the current x-range (first curve only, even with
   overlays plotted), shown in the status line; invalid, empty, non-finite or

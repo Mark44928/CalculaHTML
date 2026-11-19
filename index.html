@@ -22,7 +22,7 @@
   <meta property="og:image:height" content="300">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mark44928.github.io/CalculaHTML/docs/og.png">
-  <meta name="description" content="Feature-rich modern HTML calculator with multiple themes (Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin, One Dark, Solarized, Monokai, Rose Pine, GitHub Dark, Old Dark, Dark, Light, Greenit)." />
+  <meta name="description" content="Feature-rich modern HTML calculator with multiple themes (Gruvbox, Everforest, Tokyo Night, Dracula, Nord, Catppuccin, One Dark, Solarized, Monokai, Rose Pine, GitHub Dark, Old Dark, Dark, Light, Greenit, Bluney, Yellen)." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -485,6 +485,32 @@ body {
   --btn-active: #234764;
   --display-bg: #091422;
   --display-fg: #7DBBFF;
+  --shadow-color: rgba(0,0,0,.5);
+}
+
+/* ---------- Yellen Dark ---------- */
+[data-theme="yellen"] {
+  --bg: #171408;
+  --bg-elev: #24200C;
+  --surface: #24200C;
+  --surface-2: #332B10;
+  --fg: #F3E8B8;
+  --fg-muted: #CBBFA0;
+  --fg-dim: #87763B;
+  --accent: #F2D14E;
+  --accent-2: #D8A93B;
+  --accent-3: #F7DE72;
+  --operator: #F7DE72;
+  --equals: #F2D14E;
+  --danger: #C76A52;
+  --success: #A9B85A;
+  --border: rgba(242,209,78,.12);
+  --btn-bg: #24200C;
+  --btn-fg: #F3E8B8;
+  --btn-hover: #332B10;
+  --btn-active: #403519;
+  --display-bg: #141100;
+  --display-fg: #F2D14E;
   --shadow-color: rgba(0,0,0,.5);
 }
 
@@ -1038,6 +1064,7 @@ body {
           <option value="olddark">Old Dark</option>
           <option value="greenit">Greenit (Dark)</option>
           <option value="bluney">Bluney (Dark)</option>
+          <option value="yellen">Yellen (Dark)</option>
         </select>
       </div>
       <button id="undoBtn" class="mode-btn" data-action="undo" title="Undo (Ctrl+Z)">Undo</button>
@@ -1065,6 +1092,7 @@ body {
       <button data-theme="olddark" title="Old Dark" style="background:#ffb347"></button>
       <button data-theme="greenit" title="Greenit" style="background:#7BD88F"></button>
       <button data-theme="bluney" title="Bluney" style="background:#7DBBFF"></button>
+      <button data-theme="yellen" title="Yellen" style="background:#F2D14E"></button>
     </div>
       <div class="display">
         <div class="expr" id="expr" aria-live="polite"></div>
@@ -1240,7 +1268,7 @@ body {
           <div><kbd>l</kbd> <kbd>r</kbd> <kbd>q</kbd> <kbd>i</kbd> <kbd>f</kbd></div><div>ln / root / square / 1&divide;x / factorial</div>
           <div><kbd>p</kbd> · <kbd>g</kbd> · <kbd>u</kbd> · <kbd>?</kbd></div><div>π · graph · units · this help</div>
         </div>
-        <p style="margin-top:10px;font-size:.8rem;opacity:.75">Memory keys <strong>MC MR M+ M− MS</strong>, the angle toggle (<strong>DEG/RAD</strong>), the full history tape with CSV export and 16 themes live in the panels below the keypad. The graph modal's <strong>Estimate area</strong> checkbox approximates ∫ f₁(x) dx over the current x-range with Simpson's rule — only the <strong>first curve (f₁)</strong> is integrated, even when overlays are plotted; invalid, empty or non-finite cases show an error. Everything works offline.</p>
+        <p style="margin-top:10px;font-size:.8rem;opacity:.75">Memory keys <strong>MC MR M+ M− MS</strong>, the angle toggle (<strong>DEG/RAD</strong>), the full history tape with CSV export and 17 themes live in the panels below the keypad. The graph modal's <strong>Estimate area</strong> checkbox approximates ∫ f₁(x) dx over the current x-range with Simpson's rule — only the <strong>first curve (f₁)</strong> is integrated, even when overlays are plotted; invalid, empty or non-finite cases show an error. Everything works offline.</p>
        </div>
     </div>
 

@@ -459,6 +459,32 @@ body {
   --shadow-color: rgba(0,0,0,.5);
 }
 
+/* ---------- Yellen Dark ---------- */
+[data-theme="yellen"] {
+  --bg: #171408;
+  --bg-elev: #24200C;
+  --surface: #24200C;
+  --surface-2: #332B10;
+  --fg: #F3E8B8;
+  --fg-muted: #CBBFA0;
+  --fg-dim: #87763B;
+  --accent: #F2D14E;
+  --accent-2: #D8A93B;
+  --accent-3: #F7DE72;
+  --operator: #F7DE72;
+  --equals: #F2D14E;
+  --danger: #C76A52;
+  --success: #A9B85A;
+  --border: rgba(242,209,78,.12);
+  --btn-bg: #24200C;
+  --btn-fg: #F3E8B8;
+  --btn-hover: #332B10;
+  --btn-active: #403519;
+  --display-bg: #141100;
+  --display-fg: #F2D14E;
+  --shadow-color: rgba(0,0,0,.5);
+}
+
 /* ---------- Theme swatches ---------- */
 .theme-swatches {
   display: flex;
