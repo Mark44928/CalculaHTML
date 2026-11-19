@@ -1,8 +1,9 @@
 // Bump when the shell files below change, so clients pick up the new version
 // instead of serving a stale cache forever.
-const CACHE_NAME = "calculahtml-v11";
+const CACHE_NAME = "calculahtml-v13";
 const SHELL = [
   "./",
+  "./?source=pwa",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/icon-192.png",
@@ -23,7 +24,7 @@ self.addEventListener("activate", (event) => {
     Promise.all([
       self.clients.claim(),
       caches.keys().then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+        Promise.all(keys.filter((k) => k.startsWith("calculahtml-") && k !== CACHE_NAME).map((k) => caches.delete(k)))
       )
     ])
   );
@@ -57,7 +58,7 @@ self.addEventListener("fetch", (event) => {
     // Previously this was fetch-first, so opening the installed app offline
     // showed offline.html instead of the calculator itself.
     event.respondWith(
-      caches.match(request).then((cached) => {
+      caches.match(request, { ignoreSearch: true }).then((cached) => {
         const network = fetch(request)
           .then((res) => {
             if (cacheable(request) && res.ok) refreshCache(event, request, res);

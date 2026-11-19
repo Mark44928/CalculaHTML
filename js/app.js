@@ -58,6 +58,7 @@
     if (!isFinite(n)) return String(n);
     let s = String(n);
     if (s.includes("e") || s.includes("E")) return s;
+    if (Number.isSafeInteger(n)) return s; // don't mangle exact integers to 12 digits
     if (s.length > 14) {
       const fixed = n.toPrecision(settings.precision || 12);
       return parseFloat(fixed).toString();
@@ -393,13 +394,17 @@
   }
 
   function comb(n, r) {
-    if (r < 0 || r > n || n < 0) return NaN;
+    if (!Number.isFinite(n) || !Number.isFinite(r) || r < 0 || r > n || n < 0 || n > 1e15) return NaN;
+    r = Math.min(r, n - r); // C(n, r) === C(n, n - r); the smaller side keeps the loop bounded
+    if (r > 1e6) return NaN;
     let res = 1;
     for (let i = 1; i <= r; i++) res = res * (n - r + i) / i;
     return Math.round(res);
   }
   function perm(n, r) {
-    if (r < 0 || r > n || n < 0) return NaN;
+    if (!Number.isFinite(n) || !Number.isFinite(r) || r < 0 || r > n || n < 0 || n > 1e15) return NaN;
+    r = Math.min(r, n);
+    if (r > 1e6) return NaN;
     let res = 1;
     for (let i = 0; i < r; i++) res *= (n - i);
     return res;
@@ -653,6 +658,10 @@
       return;
     }
     const next = readGraphPresets().filter((preset) => preset.name.toLowerCase() !== name.toLowerCase());
+    if (next.length >= 12) {
+      if (graphMsg) { graphMsg.classList.add("err"); graphMsg.textContent = "Preset list is full (12) — delete one first"; }
+      return;
+    }
     next.push({ name, expr: graphPresetCleanExpr(graphExpr.value), xmin, xmax });
     try { localStorage.setItem(GRAPH_PRESETS_KEY, graphPresetSerialize(next)); } catch (_) {}
     renderGraphPresets(name);

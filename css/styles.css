@@ -433,6 +433,32 @@ body {
   --shadow-color: rgba(0,0,0,.45);
 }
 
+/* ---------- Bluney Dark ---------- */
+[data-theme="bluney"] {
+  --bg: #0E1B2E;
+  --bg-elev: #122A46;
+  --surface: #122A46;
+  --surface-2: #193754;
+  --fg: #E3EFF9;
+  --fg-muted: #B7CDE0;
+  --fg-dim: #7897B3;
+  --accent: #7DBBFF;
+  --accent-2: #8BD5FF;
+  --accent-3: #B9A8E0;
+  --operator: #E0CD97;
+  --equals: #7DBBFF;
+  --danger: #F07178;
+  --success: #7DBBFF;
+  --border: rgba(125,187,255,.1);
+  --btn-bg: #122A46;
+  --btn-fg: #E3EFF9;
+  --btn-hover: #193754;
+  --btn-active: #234764;
+  --display-bg: #091422;
+  --display-fg: #7DBBFF;
+  --shadow-color: rgba(0,0,0,.5);
+}
+
 /* ---------- Theme swatches ---------- */
 .theme-swatches {
   display: flex;
