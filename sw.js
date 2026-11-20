@@ -1,6 +1,6 @@
 // Bump when the shell files below change, so clients pick up the new version
 // instead of serving a stale cache forever.
-const CACHE_NAME = "calculahtml-v14";
+const CACHE_NAME = "calculahtml-v15";
 const SHELL = [
   "./",
   "./?source=pwa",

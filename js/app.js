@@ -17,7 +17,7 @@
   let justEvaluated = false;
   let memory = 0;
   let hasMemory = false;
-  const history = [];
+  const history = loadHistory();
   const undoStack = [];
   const redoStack = [];
 
@@ -44,6 +44,21 @@
   function saveSettings() {
     try { localStorage.setItem("calc-settings", JSON.stringify(settings)); } catch (e) {}
   }
+
+  // >>> HISTORYSTORE_BEGIN — hostile stored data is filtered, not trusted
+  function parseHistory(raw) {
+    let parsed;
+    try { parsed = JSON.parse(raw || "[]"); } catch (e) { return []; }
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((h) => h && typeof h.expr === "string" && typeof h.result === "string").slice(0, 100);
+  }
+  function loadHistory() {
+    try { return parseHistory(localStorage.getItem("calc-history")); } catch (e) { return []; }
+  }
+  function saveHistory() {
+    try { localStorage.setItem("calc-history", JSON.stringify(history)); } catch (e) {}
+  }
+  // <<< HISTORYSTORE_END
 
   function showToast(msg) {
     toast.textContent = msg;
@@ -134,6 +149,7 @@
     renderHistory();
   }
   function renderHistory() {
+    saveHistory();
     if (history.length === 0) {
       historyList.innerHTML = '<div class="empty">No calculations yet</div>';
       return;

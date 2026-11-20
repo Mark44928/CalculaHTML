@@ -165,5 +165,29 @@ function check(label, got, want) {
   );
 }
 
+// ---- HISTORYSTORE: stored history must survive reloads and reject junk ----
+{
+  const slice = extract("HISTORYSTORE");
+  const parseHistory = new Function(`${slice}\nreturn parseHistory;`)();
+  check("missing history -> empty", parseHistory(null), []);
+  check("corrupt history -> empty", parseHistory("{nope"), []);
+  check("non-array history -> empty", parseHistory('{"expr":"1"}'), []);
+  check(
+    "valid entries are kept",
+    parseHistory('[{"expr":"1+1","result":"2"}]'),
+    [{ expr: "1+1", result: "2" }],
+  );
+  check(
+    "malformed entries are dropped",
+    parseHistory('[{"expr":"1+1","result":"2"},{"expr":7},{"result":"3"},null]'),
+    [{ expr: "1+1", result: "2" }],
+  );
+  check(
+    "history is capped at 100 entries",
+    parseHistory(JSON.stringify(Array.from({ length: 120 }, (_, i) => ({ expr: String(i), result: String(i) })))).length,
+    100,
+  );
+}
+
 console.log(`logic: ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
