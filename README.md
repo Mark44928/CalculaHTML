@@ -3,7 +3,7 @@
 <p align="center"><img src="assets/logo.svg" width="760" alt="CalculaHTML logo"></p>
 
 <p align="center">
-  <a href="https://mark44928.github.io/CalculaHTML/"><img src="assets/preview.svg" alt="CalculaHTML preview" width="420"></a>
+  <a href="https://mark44928.github.io/CalculaHTML/"><img src="docs/screenshot.png" alt="CalculaHTML calculator" width="720"></a>
 </p>
 
 <p align="center">
