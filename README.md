@@ -66,6 +66,8 @@ A responsive calculator that runs entirely in the browser: 17 themes plus a Syst
 - v1.5.0 adds **animated graphs**: expressions can use `t`, a slider selects the
   value, and **Play t** animates it without adding another parser or dependency.
 - v1.8.0 adds the **Yellen** gold theme and refreshes the service-worker shell.
+- v1.9.0 persists the calculation history across reloads (last 100 entries,
+  filtered against corrupt storage) so the tape survives closing the app.
 - v1.6.0 adds the graph **Estimate area** toggle: a 1000-panel Simpson's-rule
   estimate of ∫ f₁(x) dx over the current x-range (first curve only, even with
   overlays plotted), shown in the status line; invalid, empty, non-finite or
