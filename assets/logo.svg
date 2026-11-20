@@ -1,17 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-labelledby="t d">
   <title id="t">CalculaHTML</title>
-  <desc id="d">CalculaHTML logo: a gold calculator on a dark panel.</desc>
-  <rect width="1200" height="300" rx="28" fill="#0D1117"/>
-  <rect x="1" y="1" width="1198" height="298" rx="27" fill="none" stroke="#4A3D20" stroke-width="2"/>
-  <circle cx="150" cy="150" r="96" fill="#141C26" stroke="#273241" stroke-width="2"/>
-  <rect x="103" y="73" width="94" height="154" rx="14" fill="#FFD166"/>
-  <rect x="116" y="87" width="68" height="27" rx="6" fill="#0D1117"/>
-  <g fill="#0D1117">
-    <rect x="116" y="127" width="18" height="17" rx="4"/><rect x="141" y="127" width="18" height="17" rx="4"/><rect x="166" y="127" width="18" height="17" rx="4"/>
-    <rect x="116" y="153" width="18" height="17" rx="4"/><rect x="141" y="153" width="18" height="17" rx="4"/><rect x="166" y="153" width="18" height="17" rx="4"/>
-    <rect x="116" y="179" width="18" height="24" rx="4"/><rect x="141" y="179" width="18" height="24" rx="4"/><rect x="166" y="179" width="43" height="24" rx="4"/>
+  <desc id="d">Minimal CalculaHTML logo: a gold calculator outline and a dark wordmark.</desc>
+  <rect width="1200" height="300" rx="28" fill="#0B0D12"/>
+  <g fill="none" stroke="#F0BD00" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="105" y="80" width="90" height="140" rx="14"/>
+    <path d="M122 108 H178"/>
+    <path d="M130 145 h12 M166 145 h12 M130 175 h12 M166 175 h12"/>
   </g>
-  <text x="318" y="155" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="84" font-weight="800" letter-spacing="3" fill="#F5F0E6">CALCULAHTML</text>
-  <text x="322" y="204" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="18" letter-spacing="4" fill="#A99772">CALCULATOR · OFFLINE PWA</text>
-  <text x="1138" y="252" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" letter-spacing="3" fill="#6C6048">MARK44928</text>
+  <text x="300" y="180" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif" font-size="80" font-weight="650" letter-spacing="-2" fill="#F5F7FA">CalculaHTML</text>
 </svg>
