@@ -6,9 +6,9 @@ import sys
 
 
 def main() -> int:
-    css = open("css/styles.css").read()
-    html = open("index.html").read()
-    readme = open("README.md").read()
+    css = open("css/styles.css", encoding="utf-8").read()
+    html = open("index.html", encoding="utf-8").read()
+    readme = open("README.md", encoding="utf-8").read()
 
     css_themes = set(re.findall(r'\[data-theme="([a-z]+)"\]', css))
     options = re.findall(r'<option value="([a-z]+)">([^<]+)</option>', html)
