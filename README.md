@@ -195,3 +195,7 @@ Tiny, dependency-free tools from the same family:
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+**More projects:** [Mark44928's hub](https://mark44928.github.io/Mark44928/) — a family of dependency-free tools for Termux, Linux, and the terminal.
