@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mark44928.github.io/CalculaHTML/sitemap.xml
