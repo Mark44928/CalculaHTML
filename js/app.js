@@ -70,6 +70,7 @@
   function formatNumber(n) {
     if (Number.isNaN(n) || !Number.isFinite(n)) return "Error";
     if (typeof n === "string") return n;
+    if (Object.is(n, -0)) n = 0; // avoid "-0" in results
     if (!isFinite(n)) return String(n);
     let s = String(n);
     if (s.includes("e") || s.includes("E")) return s;
