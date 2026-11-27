@@ -1328,6 +1328,9 @@ body {
 
   const displayExpr = document.getElementById("expr");
   const displayResult = document.getElementById("result");
+  displayResult.addEventListener("dblclick", () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(current).then(() => showToast("Copied result")).catch(() => showToast("Copy failed"));
+  });
   const displayMem = document.getElementById("memIndicator");
   const angleIndicator = document.getElementById("angleIndicator");
   const historyList = document.getElementById("historyList");
